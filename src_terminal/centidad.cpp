@@ -372,6 +372,7 @@ std::__cxx11::string CEntidad::elimina_Atributo(int index, FILE *ptr_arch)
 
 std::__cxx11::string CEntidad::agrega_dato(FILE *ptr_arch)
 {
+    /*Funcion donde se agreganlos datos*/
     std::stringstream buffer;
     std::list<CAtributo>::iterator iterador;
     void *bloque;
@@ -389,7 +390,7 @@ std::__cxx11::string CEntidad::agrega_dato(FILE *ptr_arch)
 
         if(iterador != this->lista_atributos->end())
         {
-            //Saca el tamaño.
+            //Saca el tamaño que ocupara el bloque.
             while(iterador != this->lista_atributos->end())
             {
                 tam_atributos += iterador->dame_Tamanio();
@@ -443,17 +444,23 @@ std::__cxx11::string CEntidad::agrega_dato(FILE *ptr_arch)
             }
             if(this->dir_dato != -1)
             {
+                /*Si es el primer dato actualiza la direccion del dato de la entidad*/
                 this->dir_dato = std::ftell(ptr_arch);
             }
             else
             {
+                /*si no es el primero se tiene que actulizar la direccion del ultimo dato*/
+                //No esta programado
                 std::fseek(ptr_arch, this->dir_dato, SEEK_SET);
                 //std::fread()
             }
+
             *((long*)(bloque)+(tam_atributos)) = -1;
             tam_atributos += sizeof(long);
             //escribe en el archivo
             std::fwrite(bloque, tam_atributos, 1, ptr_arch);
+
+            //Solo para ver si escribio bien el bloque..
             this->imprime_dato(bloque);
             std::free(bloque);
         }

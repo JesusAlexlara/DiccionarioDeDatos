@@ -119,8 +119,10 @@ std::__cxx11::string CDiccionario::agrega_Entidad(char n[20])
                 buffer << "Se agrego la entidad " << n << " al diccionario" << std::endl;
             }
         }
+        //Ordena a lista por nombres, esto es posible por la sobrecarga del operador ==
         this->lista_entidades.sort();
     }
+    //Retorna un buffer que despues es mostrado al inicio del menu.
     return buffer.str();
 }
 
@@ -134,8 +136,13 @@ std::__cxx11::string CDiccionario::edita_Entidad(int index, char n[20])
     if(this->ptr_Archivo != NULL)
     {
         iterador = this->lista_entidades.begin();
+        /*Se verifica si la lista no esta vacia comparado el interador con el final de la
+        lista*/
         if(iterador != this->lista_entidades.end())
         {
+            /*El metodo advance el iterador n veces si seleccione el elemento 2
+             * advance recorre el iterador 2 veces
+             */
             std::advance(iterador, index-1);
             std::strcpy(aux_nombre, iterador->dame_Nombre());
             iterador->pon_Nombre(n);
@@ -238,6 +245,7 @@ std::__cxx11::string CDiccionario::imprime_Entidades()
 
 int CDiccionario::lista_EntidadesMenu()
 {
+    //Menu que se encarga de imprimir las entidades de la lista de forma numerica
     std::list<CEntidad>::iterator iterador;
     int contador;
     int res = -1;
@@ -265,6 +273,8 @@ int CDiccionario::lista_EntidadesMenu()
 
 std::__cxx11::string CDiccionario::selecciona_Entidad(int index)
 {
+    /*Menu principal donde esta seleecionado una entidad
+     * para agregarle sus atributos*/
     int opcion, seleccion, tipo, tam = 1;
     char na[20];
     std::string log;
@@ -352,6 +362,7 @@ std::__cxx11::string CDiccionario::selecciona_Entidad(int index)
                         break;
                 }
             }while(opcion != 0);
+            /*Cuando se terminan de hacer todos los cambios se actualiza la entidad del archivo*/
             std::fseek(this->ptr_Archivo, iterator->dameDir_Entidad(), SEEK_SET);
             aux_entidad = *iterator;
             std::fwrite(&aux_entidad, sizeof(CEntidad), 1, this->ptr_Archivo);
