@@ -168,6 +168,55 @@ int CEntidad::lista_Atributos()
     return opcion;
 }
 
+int CEntidad::lista_datos(FILE *ptr_arch)
+{
+    std::list<CAtributo>::iterator iterador;
+    int opcion = -1;
+    int contador = 1;
+    int aux_direccion;
+    int tam_atributos;
+    void *bloque;
+
+    if(this->dir_dato != -1)
+    {
+        /*Ciclo para caluar el tamaño que ocupan los atributos*/
+        iterador = this->lista_atributos->begin();
+        while(iterador != this->lista_atributos->end())
+        {
+            tam_atributos += iterador->dame_Tamanio();
+            iterador++;
+        }
+        /*Reserva memoria del tamaño de los atributos*/
+        tam_atributos+=sizeof(long);
+        aux_direccion = this->dir_dato;
+        do
+        {
+            bloque = std::malloc(tam_atributos);
+            /*Ubica el apuntador en la direccion del primer dato*/
+            std::fseek(ptr_arch, aux_direccion, SEEK_SET);
+            /*Lee el primer dato*/
+            std::fread(bloque, tam_atributos, 1, ptr_arch);
+            /*Lee la direccion del siguiente dato*/
+            aux_direccion = *((long*)((uint8_t*)bloque+tam_atributos-sizeof(long)));
+            std::cout << contador << ". --------" << std::endl;
+            this->imprime_dato(bloque);
+            free(bloque);
+            bloque = nullptr;
+            contador++;
+        }while(aux_direccion != -1);
+
+        std::cout << "> ";
+        try
+        {
+            std::cin >> opcion;
+        }catch(int op)
+        {
+            std::cout << "Valor incorrecto" << std::endl;
+        }
+    }
+    return opcion;
+}
+
 std::__cxx11::string CEntidad::agregar_Atributo(char nombre[20], int tipo, int tam, FILE *ptr_arch)
 {
     std::list<CAtributo>::iterator atras_iterador;
@@ -372,7 +421,7 @@ std::__cxx11::string CEntidad::elimina_Atributo(int index, FILE *ptr_arch)
 
 std::__cxx11::string CEntidad::agrega_dato(FILE *ptr_arch)
 {
-    /*Funcion donde se agreganlos datos*/
+    /*Funcion donde se agregan los datos*/
     std::stringstream buffer;
     std::list<CAtributo>::iterator iterador;
     void *bloque;
@@ -382,7 +431,10 @@ std::__cxx11::string CEntidad::agrega_dato(FILE *ptr_arch)
     float aux_float;
     char aux_char;
     int tam_atributos = 0;
-    //int aux_direccion;
+    //auxiliares
+    long aux_direccion_ant;
+    long aux_direccion = -1;
+    long dato_direccion;
 
     if(ptr_arch != NULL)
     {
@@ -410,21 +462,21 @@ std::__cxx11::string CEntidad::agrega_dato(FILE *ptr_arch)
                     std::cout << "CHAR " <<"Dame " << iterador->dame_Nombre() << ": ";
                     std::cin >> aux_char;
                     //actualiza bloque
-                    *((char*)(bloque)+(tam_atributos)) = aux_char;
+                    *((char*)((uint8_t*)bloque+tam_atributos)) = aux_char;
                     tam_atributos += sizeof(char);
                     break;
                 case 2:
                     std::cout << "INT " << "Dame " << iterador->dame_Nombre() << ": ";
                     std::cin >> aux_entero;
                     //actuza bloque
-                    *((int*)(bloque)+(tam_atributos)) = aux_entero;
+                    *((int*)((uint8_t*)bloque+tam_atributos)) = aux_entero;
                     tam_atributos += sizeof(int);
                     break;
                 case 3:
                     std::cout << "FLOAT " << "Dame " << iterador->dame_Nombre() << ": ";
                     std::cin >> aux_float;
                     //actualiza bloque
-                    *((float*)(bloque)+(tam_atributos)) = aux_float;
+                    *((float*)((uint8_t*)bloque+tam_atributos)) = aux_float;
                     tam_atributos += sizeof(float);
                     break;
                 case 4:
@@ -432,33 +484,53 @@ std::__cxx11::string CEntidad::agrega_dato(FILE *ptr_arch)
                     std::cout << "CHAR (" << iterador->dame_Tamanio() << ") "
                               << "Dame " << iterador->dame_Nombre() << ": ";
                     std::cin >> aux_cadena;
-                    std::strcpy((char*)(bloque)+(tam_atributos), aux_cadena);
+                    std::strcpy((char*)((uint8_t*)bloque+tam_atributos), aux_cadena);
                     tam_atributos += iterador->dame_Tamanio();
                     std::free(aux_cadena);
                     break;
                 default:
                     break;
                 }
+                //Linea para limpiar el buffer.
                 std::cin.ignore(256, '\n');
                 iterador++;
             }
-            if(this->dir_dato != -1)
-            {
-                /*Si es el primer dato actualiza la direccion del dato de la entidad*/
-                this->dir_dato = std::ftell(ptr_arch);
-            }
-            else
-            {
-                /*si no es el primero se tiene que actulizar la direccion del ultimo dato*/
-                //No esta programado
-                std::fseek(ptr_arch, this->dir_dato, SEEK_SET);
-                //std::fread()
-            }
 
-            *((long*)(bloque)+(tam_atributos)) = -1;
+            std::fseek(ptr_arch, 0, SEEK_END);
+            dato_direccion = std::ftell(ptr_arch);
+            *((long*)((uint8_t*)bloque+tam_atributos)) = -1;
             tam_atributos += sizeof(long);
             //escribe en el archivo
             std::fwrite(bloque, tam_atributos, 1, ptr_arch);
+            //std::fwrite(&aux_direccion, sizeof(long), 1, ptr_arch);
+
+            if(this->dir_dato == -1)
+            {
+                /*Si es el primer dato actualiza la direccion del dato de la entidad*/
+                this->dir_dato = dato_direccion;
+            }
+            else
+            {
+                tam_atributos -= sizeof(long);
+                aux_direccion = this->dir_dato;
+                do
+                {
+                    aux_direccion += tam_atributos;
+                    //Se mueve a la ubicacion del bloque en la direccion del siguiente bloque.
+                    std::fseek(ptr_arch, aux_direccion, SEEK_SET);
+                    //se guarda la direccion donde esta la direccion del siguiente dato,
+                    aux_direccion_ant = std::ftell(ptr_arch);
+                    //Se lee el dato siguiente.
+                    std::fread(&aux_direccion, sizeof(long), 1, ptr_arch);
+                }while(aux_direccion != -1);
+                if(aux_direccion == -1)
+                {
+                    //Se regresa el puntero a la direccion anterior
+                    std::fseek(ptr_arch, aux_direccion_ant, SEEK_SET);
+                    //Se actualiza la direccion anterior a la nueva direccion del nuevo dato.
+                    std::fwrite(&dato_direccion, sizeof(long), 1, ptr_arch);
+                }
+            }
 
             //Solo para ver si escribio bien el bloque..
             this->imprime_dato(bloque);
@@ -472,6 +544,64 @@ std::__cxx11::string CEntidad::agrega_dato(FILE *ptr_arch)
     return buffer.str();
 }
 
+std::__cxx11::string CEntidad::elimina_dato(int index, FILE *ptr_arch)
+{
+    std::stringstream buffer;
+    std::list<CAtributo>::iterator iterador;
+    long dir_ant, aux_dir;
+    int tam_atributos = 0;
+    int contador = 1;
+
+    if(this->dir_dato != -1)
+    {
+        iterador = this->lista_atributos->begin();
+        if(iterador != this->lista_atributos->end())
+        {
+            /*Bloque que saca el tamaño de los atributos*/
+            while(iterador != this->lista_atributos->end())
+            {
+                tam_atributos += iterador->dame_Tamanio();
+                iterador++;
+            }
+            aux_dir = this->dir_dato;
+            dir_ant = aux_dir;
+
+            while(contador != index && aux_dir != -1)
+            {
+                /*se ubica en la direccion siguiente del dato*/
+                std::fseek(ptr_arch, aux_dir+tam_atributos, SEEK_SET);
+                /*se guarda la direccion anterior del dato*/
+                dir_ant = aux_dir;
+                /*se carga la nueva direccion*/
+                std::fread(&aux_dir, sizeof(long), 1, ptr_arch);
+                contador++;
+            }
+            /*Se verifica porque se salio del ciclo*/
+            if(contador == index)
+            {
+                /*Si el dato anterior es la cabecera*/
+                if(dir_ant == this->dir_dato)
+                {
+                    /*Se mueve el puntero a la direccion del dato actual*/
+                    std::fseek(ptr_arch, dir_ant+tam_atributos, SEEK_SET);
+                    /*se actualiza la cabecera al la direccion siguiente*/
+                    std::fread(&this->dir_dato, sizeof(long), 1, ptr_arch);
+                }
+                else
+                {
+                    std::fseek(ptr_arch, aux_dir+tam_atributos, SEEK_SET);
+                    std::fread(&aux_dir, sizeof(long), 1, ptr_arch);
+                    /*se mueve el puntero a la direccion del dato anterior*/
+                    std::fseek(ptr_arch, dir_ant+tam_atributos, SEEK_SET);
+                    /*se actualiza la direccion del dato anterior*/
+                    std::fwrite(&aux_dir, sizeof(long), 1, ptr_arch);
+                }
+            }
+        }
+    }
+    return buffer.str();
+}
+
 void CEntidad::imprime_dato(void *bloque)
 {
     int tam_dato = 0;
@@ -479,6 +609,7 @@ void CEntidad::imprime_dato(void *bloque)
     char aux_char;
     int aux_int;
     float aux_float;
+    long aux_direccion = 0;
     char *aux_cad;
 
     it = this->lista_atributos->begin();
@@ -486,23 +617,23 @@ void CEntidad::imprime_dato(void *bloque)
     {
         switch (it->dame_Tipo()) {
         case 1:
-            aux_char = *((char*)(bloque)+(tam_dato));
+            aux_char = *((char*)((uint8_t*)bloque + tam_dato));
             tam_dato += sizeof(char);
             std::cout << it->dame_Nombre()<<": "<< aux_char << std::endl;
             break;
         case 2:
-            aux_int = *((int*)(bloque)+(tam_dato));
+            aux_int = *((int*)((uint8_t*)bloque + tam_dato));
             tam_dato += sizeof(int);
             std::cout << it->dame_Nombre() << ": " << aux_int << std::endl;
             break;
         case 3:
-            aux_float = *((float*)(bloque)+(tam_dato));
+            aux_float = *((float*)((uint8_t*)bloque + tam_dato));
             tam_dato+= sizeof(float);
             std::cout << it->dame_Nombre() << ": " << aux_float << std::endl;
             break;
         case 4:
             aux_cad = (char*)std::malloc(it->dame_Tamanio());
-            std::strcpy(aux_cad, ((char*)(bloque)+(tam_dato)));
+            std::strcpy(aux_cad, ((char*)((uint8_t*)bloque + tam_dato)));
             std::cout << it->dame_Nombre() << ": " << aux_cad << std::endl;
             std::free(aux_cad);
             tam_dato += it->dame_Tamanio();
@@ -512,4 +643,7 @@ void CEntidad::imprime_dato(void *bloque)
         }
         it++;
     }
+    aux_direccion = *((long*)((uint8_t*)bloque+tam_dato));
+    std::cout << "Direccion siguiente: " << aux_direccion << std::endl;
+    return;
 }

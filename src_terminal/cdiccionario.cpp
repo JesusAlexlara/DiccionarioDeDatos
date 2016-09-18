@@ -23,6 +23,7 @@ std::__cxx11::string CDiccionario::abrir_Diccionario(char n[20])
     if(this->ptr_Archivo != NULL)
     {
         std::fclose(this->ptr_Archivo);
+        this->cabecera = -1;
     }
     /*Se abre el archivo considerando que existe*/
     this->ptr_Archivo = std::fopen(n, "r+b");
@@ -35,22 +36,25 @@ std::__cxx11::string CDiccionario::abrir_Diccionario(char n[20])
         buffer << " Cabecera en " << this->cabecera  << std::endl;
 
         /*Se cargas todos sus Entidades y atributos*/
-        std::fseek(this->ptr_Archivo, this->cabecera, SEEK_SET);
-        std::fread(&aux_entidad, sizeof(CEntidad), 1, this->ptr_Archivo);
-        aux_entidad.inicia_ListaAtributos();
-        aux_entidad.carga_Atributos(this->ptr_Archivo);
-        this->lista_entidades.push_back(aux_entidad);
-        while(aux_entidad.dameDir_Siguiente() != -1)
+        if(this->cabecera != -1)
         {
-            auxDir_siguiente = aux_entidad.dameDir_Siguiente();
-            std::fseek(this->ptr_Archivo, auxDir_siguiente, SEEK_SET);
+            std::fseek(this->ptr_Archivo, this->cabecera, SEEK_SET);
             std::fread(&aux_entidad, sizeof(CEntidad), 1, this->ptr_Archivo);
             aux_entidad.inicia_ListaAtributos();
             aux_entidad.carga_Atributos(this->ptr_Archivo);
             this->lista_entidades.push_back(aux_entidad);
+            while(aux_entidad.dameDir_Siguiente() != -1)
+            {
+                auxDir_siguiente = aux_entidad.dameDir_Siguiente();
+                std::fseek(this->ptr_Archivo, auxDir_siguiente, SEEK_SET);
+                std::fread(&aux_entidad, sizeof(CEntidad), 1, this->ptr_Archivo);
+                aux_entidad.inicia_ListaAtributos();
+                aux_entidad.carga_Atributos(this->ptr_Archivo);
+                this->lista_entidades.push_back(aux_entidad);
+            }
+            /*Cargadas todas las entidades se ordena la lista*/
+            this->lista_entidades.sort();
         }
-        /*Cargadas todas las entidades se ordena la lista*/
-        this->lista_entidades.sort();
     }
     /*Si el archivo no se pudo abrir se crea automaticamente*/
     else
@@ -358,6 +362,16 @@ std::__cxx11::string CDiccionario::selecciona_Entidad(int index)
                         break;
                     case 5:
                         log = iterator->agrega_dato(this->ptr_Archivo);
+                        break;
+                    case 6:
+                        iterator->lista_datos(this->ptr_Archivo);
+                        break;
+                    case 7:
+                        seleccion = iterator->lista_datos(this->ptr_Archivo);
+                        if(seleccion > 0)
+                        {
+                            iterator->elimina_dato(seleccion, this->ptr_Archivo);
+                        }
                     default:
                         break;
                 }
@@ -381,6 +395,8 @@ int CDiccionario::menu_Entidad(char n[20], std::string buf)
               << "3 - Edita entidad" << std::endl
               << "4 - Imprime Atributos" << std::endl
               << "5 - Insertar Dato" << std::endl
+              << "6 - Imprime Datos" << std::endl
+              << "7 - Elimina Dato" << std::endl
               << "0 - Regresar" << std::endl
               << "> ";
     std::cin >> opcion;

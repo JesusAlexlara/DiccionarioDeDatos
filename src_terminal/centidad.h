@@ -38,12 +38,14 @@ public:
 
     void carga_Atributos(FILE *ptr_arch);
     int lista_Atributos();
+    int lista_datos(FILE *ptr_arch);
     std::string agregar_Atributo(char nombre[20], int tipo, int tam, FILE *ptr_arch);
     std::string imprime_Atributos();
     std::string mofica_Atributos(char nombre[20], int tipo, int tam, FILE *ptr_arch, int index);
     std::string elimina_Atributo(int index, FILE *ptr_arch);
 
     std::string agrega_dato(FILE *ptr_arch);
+    std::string elimina_dato(int index, FILE *ptr_arch);
     void imprime_dato(void *bloque);
 
 };
