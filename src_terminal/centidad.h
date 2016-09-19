@@ -46,6 +46,7 @@ public:
 
     std::string agrega_dato(FILE *ptr_arch);
     std::string elimina_dato(int index, FILE *ptr_arch);
+    std::string edita_dato(int index, FILE *ptr_arch);
     void imprime_dato(void *bloque);
 
 };

@@ -370,7 +370,14 @@ std::__cxx11::string CDiccionario::selecciona_Entidad(int index)
                         seleccion = iterator->lista_datos(this->ptr_Archivo);
                         if(seleccion > 0)
                         {
-                            iterator->elimina_dato(seleccion, this->ptr_Archivo);
+                            log = iterator->elimina_dato(seleccion, this->ptr_Archivo);
+                        }
+                        break;
+                    case 8:
+                        seleccion = iterator->lista_datos(this->ptr_Archivo);
+                        if(seleccion > 0)
+                        {
+                            log = iterator->edita_dato(seleccion, this->ptr_Archivo);
                         }
                     default:
                         break;
@@ -391,12 +398,14 @@ int CDiccionario::menu_Entidad(char n[20], std::string buf)
     std::cout << "Entidad: " << n << std::endl
               << buf << std::endl
               << "1 - Agregar Atributo" << std::endl
-              << "2 - Elimina entidad" << std::endl
-              << "3 - Edita entidad" << std::endl
+              << "2 - Elimina Atributo" << std::endl
+              << "3 - Edita Atributo" << std::endl
               << "4 - Imprime Atributos" << std::endl
+              << "-----------------------------" << std::endl
               << "5 - Insertar Dato" << std::endl
               << "6 - Imprime Datos" << std::endl
               << "7 - Elimina Dato" << std::endl
+              << "8 - Modifica Dato" << std::endl
               << "0 - Regresar" << std::endl
               << "> ";
     std::cin >> opcion;

@@ -174,7 +174,7 @@ int CEntidad::lista_datos(FILE *ptr_arch)
     int opcion = -1;
     int contador = 1;
     int aux_direccion;
-    int tam_atributos;
+    int tam_atributos = 0;
     void *bloque;
 
     if(this->dir_dato != -1)
@@ -205,6 +205,7 @@ int CEntidad::lista_datos(FILE *ptr_arch)
             contador++;
         }while(aux_direccion != -1);
 
+        std::cout << "0. Salir" << std::endl;
         std::cout << "> ";
         try
         {
@@ -596,6 +597,99 @@ std::__cxx11::string CEntidad::elimina_dato(int index, FILE *ptr_arch)
                     /*se actualiza la direccion del dato anterior*/
                     std::fwrite(&aux_dir, sizeof(long), 1, ptr_arch);
                 }
+                buffer << "Se elimino el dato." << std::endl;
+            }
+        }
+    }            tam_atributos += sizeof(long);
+    return buffer.str();
+}
+
+std::__cxx11::string CEntidad::edita_dato(int index, FILE *ptr_arch)
+{
+    std::stringstream buffer;
+    std::list<CAtributo>::iterator iterador;
+    void *bloque;
+    char *aux_cadena;
+    int aux_entero;
+    float aux_float;
+    char aux_char;
+    int tam_atributos = 0;
+    long aux_dir;
+    int contador = 1;
+
+    if(ptr_arch != NULL)
+    {
+        iterador = this->lista_atributos->begin();
+        if(iterador != this->lista_atributos->end())
+        {
+            //Saca el tamaño que ocupara el bloque.
+            while(iterador != this->lista_atributos->end())
+            {
+                tam_atributos += iterador->dame_Tamanio();
+                iterador++;
+            }
+            //reserva memoria
+            bloque = std::malloc(tam_atributos);
+
+            tam_atributos = 0;
+            iterador = this->lista_atributos->begin();
+            while(iterador != this->lista_atributos->end())
+            {
+                switch (iterador->dame_Tipo()) {
+                case 1:
+                    std::cout << "CHAR " <<"Dame " << iterador->dame_Nombre() << " nuevo" << ": ";
+                    std::cin >> aux_char;
+                    //actualiza bloque
+                    *((char*)((uint8_t*)bloque+tam_atributos)) = aux_char;
+                    tam_atributos += sizeof(char);
+                    break;
+                case 2:
+                    std::cout << "INT " << "Dame " << iterador->dame_Nombre() << " nuevo" << ": ";
+                    std::cin >> aux_entero;
+                    //actuza bloque
+                    *((int*)((uint8_t*)bloque+tam_atributos)) = aux_entero;
+                    tam_atributos += sizeof(int);
+                    break;
+                case 3:
+                    std::cout << "FLOAT " << "Dame " << iterador->dame_Nombre() << " nuevo" << ": ";
+                    std::cin >> aux_float;
+                    //actualiza bloque
+                    *((float*)((uint8_t*)bloque+tam_atributos)) = aux_float;
+                    tam_atributos += sizeof(float);
+                    break;
+                case 4:
+                    aux_cadena = (char*)std::malloc(iterador->dame_Tamanio());
+                    std::cout << "CHAR (" << iterador->dame_Tamanio() << ") "
+                              << "Dame " << iterador->dame_Nombre() << " nuevo" << ": ";
+                    std::cin >> aux_cadena;
+                    std::strcpy((char*)((uint8_t*)bloque+tam_atributos), aux_cadena);
+                    tam_atributos += iterador->dame_Tamanio();
+                    std::free(aux_cadena);
+                    break;
+                default:
+                    break;
+                }
+                //Linea para limpiar el buffer.
+                std::cin.ignore(256, '\n');
+                iterador++;
+            }
+            aux_dir = this->dir_dato;
+
+            while(contador != index && aux_dir != -1)
+            {
+                /*se ubica en la direccion siguiente del dato*/
+                std::fseek(ptr_arch, aux_dir+tam_atributos, SEEK_SET);
+                std::fread(&aux_dir, sizeof(long), 1, ptr_arch);
+                contador++;
+            }
+            /*Se verifica porque se salio del ciclo*/
+            if(contador == index)
+            {
+                std::fseek(ptr_arch, aux_dir, SEEK_SET);
+                std::fwrite(bloque, tam_atributos, 1, ptr_arch);
+                std::rewind(ptr_arch);
+                buffer << "Se modifico el dato." << std::endl;
+                std::free(bloque);
             }
         }
     }
