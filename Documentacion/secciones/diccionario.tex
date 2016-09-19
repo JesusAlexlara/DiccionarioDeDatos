@@ -1,57 +1,394 @@
 \chapter[Introducción]{Introducción}
 \pagenumbering{arabic} % para empezar la numeración con números
 
-Con el transcurso del tiempo la tecnología avanza y las instituciones educativas se ven en la necesidad de adquirir nuevas tecnologías para el mejoramiento de sus sistemas y procedimientos, con el fin de garantizar un eficaz funcionamiento y así obtener una adaptación paralela de condiciones con otras instituciones.
+Un aspecto fundamental de los sistemas de información es la organización sobre la cual maneja sus datos ya que de ello depende el desempeño de los programas. En el siguiente contenido desarrollaremos teórica y prácticamente las diferentes organizaciones de archivos, las cuales implementamos para diccionario de datos.
+
+
+\chapter[Conceptos]{Conceptos}
+
+\section{Archivo}
+Un archivo es una colección de registros logicamente relacionados. Por lo	regular, todos los registros de un archivo	tienen un formato único, aunque existen archivos con multiples	 formatos de registros.	
+
+\section{Entidad}
+Las entidades se describen en la estructura de la base de datos empleando un modelo de datos.
+Cada entidad está constituida por uno o más atributos. Por ejemplo, la entidad "Alumno" podría tener los atributos: nombre, apellido, año de nacimiento, etc.
+
+\section{Atributos}
+Los atributos son las características por medio de los cuales se puede describir una entidad.
+
+\section{Datos}
+Un dato es una representación simbólica (numérica, alfabética, algorítmica, espacial, etc.) de un atributo o variable cuantitativa o cualitativa. Los datos describen hechos empíricos, sucesos y entidades.
+
+\chapter[Organizaciones de archivos]{Organizaciones de archivos}
+
+Las técnicas utilizadas para representar y almacenar registros en archivos se llama organización de archivos. Las cuatro técnicas fundamentales de organización de archivos que analizaremos son las siguientes:
+\begin{itemize}
+\item Secuencial 
+\item Secuencial indexado
+\item Archivos indexados con arboles b+
+\item Archivos directos con (hash dinámica)
+\item Archivos directos con (hash estática)
+\item Organización de archivos multillave
+\end{itemize}
+
+\chapter[Operaciones sobre archivo]{Operaciones sobre archivo}
+
+La manera como se usar el archivo es un factor importante para determinar como se debe organizar el archivo. Dos aspectos importantes sobre el uso de archivos son su modo de utilización y la naturaleza de las operaciones sobre el archivo.
+Las operaciones básicas que se ejecutan sobre los archivos son las siguientes:
+
+\begin{itemize}
+\item[1.] Creación
+\item[2.] Actualización, incluyendo:
+\begin{itemize}
+\item[a.] inserción de registros
+\item[b.] modificación de registros
+\item[c.] supresión de registros
+\end{itemize}
+\item[3.] Recuperación incluyendo:
+\begin{itemize}
+\item[a.] Consulta
+\item[b.] Generación de reportes
+\end{itemize}
+\item[4.] Mantenimiento, incluyendo:
+\begin{itemize}
+\item[a. ] Estructuración 
+\item[b. ] Reorganización
+\end{itemize}
+\end{itemize}
+
+\section{Creación de un archivo}
+
+La creación inicial de un archivo es conocida también como la carga del archivo.
+El grueso del trabajo en la creación de archivos incluye la validación de datos. En algunas implantaciones, primero se asigna el espacio para el archivo y después los datos son cargados dentro de ese “esqueleto” de archivo. En otras implantaciones, el archivo se construye registro por registro.
 
 \newpage
-Agrega salto de pagina
+\lstset{language=C++, breaklines=true, basicstyle=\footnotesize, basewidth  = {.5em,0.4em}}
+\begin{lstlisting}[frame=single]
+string CDiccionario::abrir_Diccionario(char n[20]) {
+    std::stringstream buffer;
+    CEntidad aux_entidad;
+    long auxDir_siguiente;
+    this->lista_entidades.clear();
+    //Si el archivo esta abierto se cierra
+    if(this->ptr_Archivo != NULL) {
+        std::fclose(this->ptr_Archivo);
+        this->cabecera = -1;
+    }
+    /*Se abre el archivo considerando que existe*/
+    this->ptr_Archivo = std::fopen(n, "r+b");
+    /*Si el archivo se pudo abrir se cargan sus datos*/
+    if(this->ptr_Archivo != NULL) {
+        buffer << "Diccionario " << n << " Abierto!!";
+        /*Se lee su cabecera en el archivo y sea actualiza la cabecera de la clase*/
+        std::fread(&this->cabecera, sizeof(long), 1, this->ptr_Archivo);
+        buffer << " Cabecera en " << this->cabecera  << std::endl;
+        /*Se cargas todos sus Entidades y atributos*/
+        if(this->cabecera != -1) {
+            std::fseek(this->ptr_Archivo, this->cabecera, SEEK_SET);
+            std::fread(&aux_entidad, sizeof(CEntidad), 1, this->ptr_Archivo);
+            aux_entidad.inicia_ListaAtributos();
+            aux_entidad.carga_Atributos(this->ptr_Archivo);
+            this->lista_entidades.push_back(aux_entidad);
+            while(aux_entidad.dameDir_Siguiente() != -1) {
+                auxDir_siguiente = aux_entidad.dameDir_Siguiente();
+                std::fseek(this->ptr_Archivo, auxDir_siguiente, SEEK_SET);
+                std::fread(&aux_entidad, sizeof(CEntidad), 1, this->ptr_Archivo);
+                aux_entidad.inicia_ListaAtributos();
+                aux_entidad.carga_Atributos(this->ptr_Archivo);
+                this->lista_entidades.push_back(aux_entidad);
+            }
+            /*Cargadas todas las entidades se ordena la lista*/
+            this->lista_entidades.sort();
+        }
+    }
+    /*Si el archivo no se pudo abrir se crea automaticamente*/
+    else {
+        this->ptr_Archivo = std::fopen(n, "w+b");
+        /*Si el archivo se pudo crear*/
+        if(this->ptr_Archivo != NULL) {
+        	buffer << "Diccionario " << n << " Creado!!" << std::endl;
+            /*Escribimos la cabecera vacia en el archivo nuevo*/
+            std::fwrite(&this->cabecera, sizeof(long), 1, this->ptr_Archivo);
+        }
+        /*Si no se pudo crear el diccionario*/
+        else {
+            buffer << "No se pudo crear el diccionario " << n << std::endl;
+        }
+    }return buffer.str();
+}
+\end{lstlisting}
 
-\newpage
-The SN54/74LS373 consists of eight latches with 3-state outputs for bus
-organized system applications. The flip-flops appear transparent to the data
-(data changes asynchronously) when Latch Enable (LE) is HIGH. When LE is \\
-LOW, the data that meets the setup times is latched. Data appears on the bus \cite{web0}
-when the Output Enable (OE) is LOW. When OE is HIGH the bus output is in\\ \par
-the high impedance state.
-The SN54/74LS374 is a 
+\section{Actualización de un archivo}
 
+Cambiar el contenido de un archivo maestro para hacer que refleje un momento transitorio mas actual del mundo real es a lo cual se llama, actualización de archivos.
+\begin{itemize}
+\item[1.] La inserción de nuevos registros, por ejemplo, la edición de un registro para un empleado de nuevo ingreso a la compañía.
+\item[2.] La modificación de datos a registros que ya existen en el archivo, por ejemplo, cambiar el sueldo del empleado, cambiar el indicativo de estado del empleado(activo, no activo, de licencia)
+\item[3.] La supresión de registros del archivo, esto es, borrar el registro de un empleado que salió de la compañía. 
+\end{itemize}
+
+De esta manera el archivo muestra una imagen mas actual de la realidad.
+
+\section{Recuperación de información de un archivo}
+
+El acceso a un archivo con el propósito de extraer información significativa es llamado recuperación de información. Existen dos clases de recuperación de información: consultas y generación de reportes. Estas dos clases pueden distinguir de acuerdo a volumen de información que producen. Una consulta produce un volumen relativamente mínimo, mientras que un reporte puede crear muchas paginas de salida de información.
+
+\section{Mantenimientos de archivos}
+
+Cambios hechos sobre archivos para mejorar la eficiencia de los programas que los accesan son los conocidos como actividades de mantenimiento. Existen dos clases de operaciones de mantenimiento básicas, las cuales son: reestructuración y reorganización. La reestructuración de un archivo implica que es necesario aplicar cambios estructurales, dentro del contexto de la misma técnica de organización de archivos. La reorganización implica cambiar la organización de un archivo a otro tipo de organización.
+
+\chapter[Diccionario de datos]{Diccionario de datos}
+Es un conjunto de metadatos que contiene las características lógicas y puntuales de los datos que se van a utilizar en un sistema que se programa, incluyendo nombres, descripción, alias, contenido y organización.
+
+\section{Descripción de un diccionario de datos}
+Es un catálogo de los elementos en un sistema. Como su nombre lo sugiere, estos elementos se centran alrededor de los datos y la forma en que están estructurados para satisfacer los requerimientos de los usuarios y las necesidades de la organización. En un diccionario de datos se encuentra la lista de todos los elementos que forman parte del flujo de datos en todo el sistema. Los elementos más importantes son flujos de datos, almacenes de datos y procesos. El diccionario guarda los detalles y descripciones de todos estos elementos.
+
+\section{Operaciones basicas de un diccionario de datos}
+\begin{itemize}
+
+\item[•] Altas
+\begin{itemize}
+\item[-] La modificación de datos a registros que ya existen en el archivo, por ejemplo, cambiar el sueldo del empleado, cambiar el indicativo de estado del empleado(activo, no activo, de licencia)
+\end{itemize}
+\item[•] Bajas
+\begin{itemize}
+\item[-] La supresión de registros del archivo, esto es, borrar el registro de un empleado que salió de la compañía.
+\end{itemize}
+\item[•] Modificaciones
+\begin{itemize}
+\item[-] La modificación de datos a registros que ya existen en el archivo, por ejemplo, cambiar el sueldo del empleado, cambiar el indicativo de estado del empleado(activo, no activo, de licencia)
+\end{itemize}
+\end{itemize}
+
+\section{Ejemplos}
+
+\subsection{Altas}
 \begin{figure}[!ht]
 \begin{center}
-  \includegraphics[width=0.5\textwidth]{secciones/isum15.jpg}
-  \caption{Imagen de prueba}
+  \includegraphics[width=0.5\textwidth]{secciones/ejemploA/img1.png}
+  \caption{Campos de una entidad}
+\end{center}
+\end{figure}
+\begin{figure}[!ht]
+\begin{center}
+  \includegraphics[width=0.5\textwidth]{secciones/ejemploA/img2.png}
+  \caption{Insercion primera de una entidad en el diccionario.}
+\end{center}
+\end{figure}
+\begin{figure}[!ht]
+\begin{center}
+  \includegraphics[width=0.5\textwidth]{secciones/ejemploA/img3.png}
+  \caption{Insercion segunda de una entidad en el diccionario.}
+\end{center}
+\end{figure}
+\begin{figure}[!ht]
+\begin{center}
+  \includegraphics[width=0.5\textwidth]{secciones/ejemploA/img4.png}
+  \caption{Insercion tercera de una entidad en el diccionario.}
 \end{center}
 \end{figure}
 
+\newpage
+\subsection{Codigo en C++ de Altas}
+\lstset{language=C++, breaklines=true, basicstyle=\footnotesize, basewidth  = {.5em,0.4em}}
+\begin{lstlisting}[frame=single]
+string CDiccionario::agrega_Entidad(char n[20])
+{
+    long dir_nueva;
+    std::stringstream buffer;
+    CEntidad *nueva_entidad, aux_entidad;
+    std::list<CEntidad>::iterator atras_entidad;
 
-Este es un texto en {\bf negritas}.
-\\ \par
+    if(this->ptr_Archivo != NULL)
+    {
+        /*Se pone el apuntador al final de archivo*/
+        std::fseek(this->ptr_Archivo, 0, SEEK_END);
+        dir_nueva = std::ftell(this->ptr_Archivo);
+        nueva_entidad = new CEntidad(n, dir_nueva);
+        std::fwrite(nueva_entidad, sizeof(CEntidad), 1, this->ptr_Archivo);
 
-Este es un texto en {\sf cursivas}.
+        //Si el diccionario esta vacio agrega y actualiza la cabecera
+        if(this->lista_entidades.empty())
+        {
+            this->cabecera = dir_nueva;
+            //Se actualiza la cabecera en el archivo
+            std::fseek(this->ptr_Archivo, 0, SEEK_SET);
+            std::fwrite(&this->cabecera, sizeof(long), 1, this->ptr_Archivo);
+            //Se agrega la nueva entidad a la lista
+            this->lista_entidades.push_back(*nueva_entidad);
+            buffer << "Se agrego la entidad " << n << " al diccionario" << std::endl;
 
-\section{Subcapitulo}
+        }
+        else
+        {
+            //recorre la lista y busca el ultimo elemento
+            atras_entidad = this->lista_entidades.begin();
+            while(atras_entidad != this->lista_entidades.end()
+                  && atras_entidad->dameDir_Siguiente() != -1)
+            {
+                atras_entidad++;
+            }
+            //Verifica si encontro la ultima entidad al final
+            if(atras_entidad->dameDir_Siguiente() == -1)
+            {
+                std::fseek(this->ptr_Archivo, atras_entidad->dameDir_Entidad(), SEEK_SET);
+                atras_entidad->ponDir_Siguiente(dir_nueva);
+                aux_entidad = *atras_entidad;
+                std::fwrite(&aux_entidad, sizeof(CEntidad), 1, this->ptr_Archivo);
+                this->lista_entidades.push_back(*nueva_entidad);
+                buffer << "Se agrego la entidad " << n << " al diccionario" << std::endl;
+            }
+        }
+        //Ordena a lista por nombres, esto es posible por la sobrecarga del operador ==
+        this->lista_entidades.sort();
+    }
+    //Retorna un buffer que despues es mostrado al inicio del menu.
+    return buffer.str();
+\end{lstlisting}
 
-hgaejkhsadlkjghlkjads.
-
-\subsection{SubSubcapitulo}
-
-ksdjfhlkjdshglksdjhg.
+\subsection{Bajas}
+\begin{figure}[!ht]
+\begin{center}
+  \includegraphics[width=0.5\textwidth]{secciones/ejemploA/Elimina1.png}
+  \caption{Eliminación de un campo, la eliminación solo se actualizan los apuntadores.}
+\end{center}
+\end{figure}
+\begin{figure}[!ht]
+\begin{center}
+  \includegraphics[width=0.5\textwidth]{secciones/ejemploA/Elimina2.png}
+  \caption{Eliminación al final del diccionario.}
+\end{center}
+\end{figure}
+\begin{figure}[!ht]
+\begin{center}
+  \includegraphics[width=0.5\textwidth]{secciones/ejemploA/Elimina3.png}
+  \caption{Eliminación al inicio del diccionario.}
+\end{center}
+\end{figure}
 
 \newpage
+\subsection{Codigo en C++ de Bajas}
+\lstset{language=C++, breaklines=true, basicstyle=\footnotesize, basewidth  = {.5em,0.4em}}
+\begin{lstlisting}[frame=single]
+string CDiccionario::elimina_Entidad(int n) {
+    std::stringstream buffer;
+    CEntidad aux_entidad;
+    std::list<CEntidad>::iterator iterador;
+	/*Si el archivo esta creado entra para realizarla baja*/
+    if(this->ptr_Archivo != NULL) {
+    	/*Se ubica el iterador en la primera entidad de la lista*/
+        iterador = this->lista_entidades.begin();
+        if(iterador != this->lista_entidades.end()) {
+        	/*Avanza el iterador segun el index*/
+            std::advance(iterador, n);
+            aux_entidad = *iterador;
+
+            iterador = this->lista_entidades.begin();
+            while((iterador->dameDir_Siguiente() != aux_entidad.dameDir_Entidad())
+                  && iterador != this->lista_entidades.end()) {
+                iterador++;
+            }
+            /*Si el iterador es correcto modifica el archivo*/
+            if(iterador->dameDir_Siguiente() == aux_entidad.dameDir_Entidad())
+            {
+                buffer << "Encontro el anterior " << iterador->dame_Nombre() << std::endl;
+                iterador->ponDir_Siguiente(aux_entidad.dameDir_Siguiente());
+                std::fseek(this->ptr_Archivo, iterador->dameDir_Entidad(), SEEK_SET);
+                aux_entidad = *iterador;
+                std::fwrite(&aux_entidad, sizeof(CEntidad), 1, this->ptr_Archivo);
+                /*Elimino la entidad de la lista*/
+                iterador = this->lista_entidades.begin();
+                std::advance(iterador, n);
+                this->lista_entidades.remove(*iterador);
+            }
+            else if(this->cabecera == aux_entidad.dameDir_Entidad()) {
+                this->cabecera = aux_entidad.dameDir_Siguiente();
+                std::fseek(this->ptr_Archivo, 0, SEEK_SET);
+                std::fwrite(&this->cabecera, sizeof(long), 1, this->ptr_Archivo);
+                buffer << "Es es el primero" << iterador->dame_Nombre() << std::endl;
+                /*Elimino la entidad de la lista*/
+                iterador = this->lista_entidades.begin();
+                std::advance(iterador, n);
+                this->lista_entidades.remove(*iterador);
+            }
+        }
+        else {
+            std::cout << "El diccionario esta vacio" << std::endl;
+        }
+    }
+    return buffer.str();
+}
+\end{lstlisting}
+
+\subsection{Modificaciones}
+\newpage
+\subsection{Codigo en C++ de Modificaciones}
+\lstset{language=C++, breaklines=true, basicstyle=\footnotesize, basewidth  = {.5em,0.4em}}
+\begin{lstlisting}[frame=single]
+string CDiccionario::edita_Entidad(int index, char n[20])
+{
+    std::stringstream buffer;
+    CEntidad aux_entidad;
+    char aux_nombre[20];
+    std::list<CEntidad>::iterator iterador;
+
+    if(this->ptr_Archivo != NULL)
+    {
+        iterador = this->lista_entidades.begin();
+        /*Se verifica si la lista no esta vacia comparado el interador con el final de la
+        lista*/
+        if(iterador != this->lista_entidades.end())
+        {
+            /*El metodo advance el iterador n veces si seleccione el elemento 2
+             * advance recorre el iterador 2 veces
+             */
+            std::advance(iterador, index-1);
+            std::strcpy(aux_nombre, iterador->dame_Nombre());
+            iterador->pon_Nombre(n);
+            aux_entidad = *iterador;
+            std::fseek(this->ptr_Archivo, iterador->dameDir_Entidad(), SEEK_SET);
+            std::fwrite(&aux_entidad, sizeof(CEntidad), 1, this->ptr_Archivo);
+            buffer << "Se modifico la Entidad "
+                   << aux_nombre << " > " << aux_entidad.dame_Nombre()
+                   << std::endl;
+            this->lista_entidades.sort();
+        }
+        else
+        {
+            std::cout << "El diccionario esta vacio" << std::endl;
+        }
+    }
+    return buffer.str();
+}
+\end{lstlisting}
+
+
+\chapter[Organización de archivos secuenciales]{Organización de archivos secuenciales}
+La manera básica de organizar un conjunto de registros, que forman un archivo, es utilizando una organización secuencial. En un archivo organizado secuencialmente, los  registros quedan grabados consecutivamente cuando el archivo se crea y deben accesarse consecutivamente cuando el archivo se usa como se muestra a continuación:
+
+\begin{figure}[!ht]
+\begin{center}
+  \includegraphics[width=0.5\textwidth]{secciones/imgA.png}
+  \caption{Estructura de un archivo secuencial}
+\end{center}
+\end{figure}
+
+En la mayoría de los casos, los registros de un archivo secuencial quedan ordenados de acuerdo con el valor de algún campo de cada registro. Semejante archivo se dice que es un archivo ordenado; el campo, o los campos, cuyo valores se utiliza para determinar el ordenamiento es conocido como llave de ordenamiento. Un archivo puede ordenarse ascendente o descendentemente con base en la llave de ordenamiento, la cual puede constar de uno o mas campos.
 
 
 \begin{table}
 \begin{center}
 
-\begin{tabular}{| l | c | r ||}
+\begin{tabular}{|c|c|c|c|c|c|}
 \hline
-\hline
-columna 1 & columna 2 & columna 3 \\
-\hline
-col 1 & col 2 & col 3\\
-\hline
-\end{tabular}
+Nombre & Dir\_Entidad & Dir\_Atriuto & Dir\_Dato & Dir\_siguiente \\ 
+\hline 
+\end{tabular} 
 
 \caption{Tabla de ejemplo}
 
 \end{center}
 \end{table}
+
+
+
