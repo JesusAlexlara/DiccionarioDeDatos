@@ -7,6 +7,8 @@
 #include<sstream>
 #include"catributo.h"
 
+using namespace std;
+
 class CEntidad
 {
 private:
@@ -15,7 +17,7 @@ private:
     long dir_atributo;
     long dir_dato;
     long dir_siguiente;
-    std::list<CAtributo> *lista_atributos;
+    list<CAtributo> *lista_atributos;
 
 public:
     CEntidad();
@@ -39,14 +41,14 @@ public:
     void carga_Atributos(FILE *ptr_arch);
     int lista_Atributos();
     int lista_datos(FILE *ptr_arch);
-    std::string agregar_Atributo(char nombre[20], int tipo, int tam, FILE *ptr_arch);
-    std::string imprime_Atributos();
-    std::string mofica_Atributos(char nombre[20], int tipo, int tam, FILE *ptr_arch, int index);
-    std::string elimina_Atributo(int index, FILE *ptr_arch);
+    string agregar_Atributo(char nombre[20], int tipo, int tam, FILE *ptr_arch);
+    string imprime_Atributos();
+    string mofica_Atributos(char nombre[20], int tipo, int tam, FILE *ptr_arch, int index);
+    string elimina_Atributo(int index, FILE *ptr_arch);
 
-    std::string agrega_dato(FILE *ptr_arch);
-    std::string elimina_dato(int index, FILE *ptr_arch);
-    std::string edita_dato(int index, FILE *ptr_arch);
+    string agrega_dato(FILE *ptr_arch);
+    string elimina_dato(int index, FILE *ptr_arch);
+    string edita_dato(int index, FILE *ptr_arch);
     void imprime_dato(void *bloque);
 
 };

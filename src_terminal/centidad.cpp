@@ -21,7 +21,7 @@ CEntidad::CEntidad(char n[20], long dir_ant)
 
 void CEntidad::pon_Nombre(char n[20])
 {
-    std::strcpy(this->nombre, n);
+    strcpy(this->nombre, n);
     return;
 }
 
@@ -77,13 +77,13 @@ long CEntidad::dameDir_Siguiente()
 bool CEntidad::operator <(const CEntidad &n) const
 {
     CEntidad aux = n;
-    return std::strcmp(this->nombre, aux.dame_Nombre()) < 0;
+    return strcmp(this->nombre, aux.dame_Nombre()) < 0;
 }
 
 bool CEntidad::operator ==(const CEntidad &n) const
 {
     CEntidad p = n;
-    return (std::strcmp(p.dame_Nombre(), this->nombre) == 0)
+    return (strcmp(p.dame_Nombre(), this->nombre) == 0)
             && (p.dameDir_Atributo() == this->dir_atributo)
             && (p.dameDir_Dato() == this->dir_dato)
             && (p.dameDir_Entidad() == this->dir_entidad)
@@ -92,7 +92,7 @@ bool CEntidad::operator ==(const CEntidad &n) const
 
 void CEntidad::inicia_ListaAtributos()
 {
-    this->lista_atributos = new std::list<CAtributo>();
+    this->lista_atributos = new list<CAtributo>();
     return;
 }
 
@@ -104,14 +104,14 @@ void CEntidad::carga_Atributos(FILE *ptr_arch)
     {
         if(this->dir_atributo != -1)
         {
-            std::fseek(ptr_arch, this->dir_atributo, SEEK_SET);
-            std::fread(&aux_entidad, sizeof(CAtributo), 1, ptr_arch);
+            fseek(ptr_arch, this->dir_atributo, SEEK_SET);
+            fread(&aux_entidad, sizeof(CAtributo), 1, ptr_arch);
             this->lista_atributos->push_back(aux_entidad);
 
             while(aux_entidad.dameDir_Siguiente() != -1)
             {
-                std::fseek(ptr_arch, aux_entidad.dameDir_Siguiente(), SEEK_SET);
-                std::fread(&aux_entidad, sizeof(CAtributo), 1, ptr_arch);
+                fseek(ptr_arch, aux_entidad.dameDir_Siguiente(), SEEK_SET);
+                fread(&aux_entidad, sizeof(CAtributo), 1, ptr_arch);
                 this->lista_atributos->push_back(aux_entidad);
             }
         }
@@ -122,11 +122,11 @@ int CEntidad::lista_Atributos()
 {
     int opcion = -1;
     int contador;
-    std::list<CAtributo>::iterator i;
+    list<CAtributo>::iterator i;
 
     if(!this->lista_atributos->empty())
     {
-        std::cout << "Selecciona Atributo" << std::endl;
+        cout << "Selecciona Atributo" << endl;
         i = this->lista_atributos->begin();
         contador = 1;
 
@@ -134,34 +134,34 @@ int CEntidad::lista_Atributos()
         {
             while(i != this->lista_atributos->end())
             {
-                std::cout << contador
+                cout << contador
                           << " - "
                           << i->dame_Nombre() << " ";
                 switch (i->dame_Tipo()) {
                 case 1:
-                    std::cout << "CHAR" << std::endl;
+                    cout << "CHAR" << endl;
                     break;
                 case 2:
-                    std::cout << "INT" << std::endl;
+                    cout << "INT" << endl;
                     break;
                 case 3:
-                    std::cout << "FLOAT" << std::endl;
+                    cout << "FLOAT" << endl;
                     break;
                 case 4:
-                    std::cout << "CHAR(" << i->dame_Tamanio() << ")" << std::endl;
+                    cout << "CHAR(" << i->dame_Tamanio() << ")" << endl;
                 default:
                     break;
                 }
                 i++;
                 contador++;
             }
-            std::cout << "> ";
+            cout << "> ";
             try
             {
-                std::cin >> opcion;
+                cin >> opcion;
             }catch(int op)
             {
-                std::cout << "Valor incorrecto" << std::endl;
+                cout << "Valor incorrecto" << endl;
             }
         }while(opcion >= 4 && opcion <=1);
     }
@@ -170,7 +170,7 @@ int CEntidad::lista_Atributos()
 
 int CEntidad::lista_datos(FILE *ptr_arch)
 {
-    std::list<CAtributo>::iterator iterador;
+    list<CAtributo>::iterator iterador;
     int opcion = -1;
     int contador = 1;
     int aux_direccion;
@@ -191,114 +191,121 @@ int CEntidad::lista_datos(FILE *ptr_arch)
         aux_direccion = this->dir_dato;
         do
         {
-            bloque = std::malloc(tam_atributos);
+            bloque = malloc(tam_atributos);
             /*Ubica el apuntador en la direccion del primer dato*/
-            std::fseek(ptr_arch, aux_direccion, SEEK_SET);
+            fseek(ptr_arch, aux_direccion, SEEK_SET);
             /*Lee el primer dato*/
-            std::fread(bloque, tam_atributos, 1, ptr_arch);
+            fread(bloque, tam_atributos, 1, ptr_arch);
             /*Lee la direccion del siguiente dato*/
             aux_direccion = *((long*)((uint8_t*)bloque+tam_atributos-sizeof(long)));
-            std::cout << contador << ". --------" << std::endl;
+            cout << contador << ". --------" << endl;
             this->imprime_dato(bloque);
             free(bloque);
             bloque = nullptr;
             contador++;
         }while(aux_direccion != -1);
 
-        std::cout << "0. Salir" << std::endl;
-        std::cout << "> ";
+        cout << "0. Salir" << endl;
+        cout << "> ";
         try
         {
-            std::cin >> opcion;
+            cin >> opcion;
         }catch(int op)
         {
-            std::cout << "Valor incorrecto" << std::endl;
+            cout << "Valor incorrecto" << endl;
         }
     }
     return opcion;
 }
 
-std::__cxx11::string CEntidad::agregar_Atributo(char nombre[20], int tipo, int tam, FILE *ptr_arch)
+string CEntidad::agregar_Atributo(char nombre[20], int tipo, int tam, FILE *ptr_arch)
 {
-    std::list<CAtributo>::iterator atras_iterador;
+    list<CAtributo>::iterator atras_iterador;
     CAtributo *nuevo_atributo, aux_atributo;
-    std::stringstream b;
+    stringstream b;
     long dir_nueva;
     int tam_aux;
 
-    switch (tipo)
+    if(this->dir_dato == -1)
     {
-    case 1:
-        tam_aux = sizeof(char);
-        break;
-    case 2:
-        tam_aux = sizeof(int);
-        break;
-    case 3:
-        tam_aux = sizeof(float);
-        break;
-    case 4:
-        tam_aux = sizeof(char) * tam;
-        break;
-    }
-    if(ptr_arch != NULL)
-    {
-        std::fseek(ptr_arch, 0, SEEK_END);
-        dir_nueva = std::ftell(ptr_arch);
-        nuevo_atributo =
-                new CAtributo(nombre, tam_aux, tipo, dir_nueva);
-        std::fwrite(nuevo_atributo, sizeof(CAtributo), 1, ptr_arch);
+        switch (tipo)
+        {
+        case 1:
+            tam_aux = sizeof(char);
+            break;
+        case 2:
+            tam_aux = sizeof(int);
+            break;
+        case 3:
+            tam_aux = sizeof(float);
+            break;
+        case 4:
+            tam_aux = sizeof(char) * tam;
+            break;
+        }
+        if(ptr_arch != NULL)
+        {
+            fseek(ptr_arch, 0, SEEK_END);
+            dir_nueva = ftell(ptr_arch);
+            nuevo_atributo =
+                    new CAtributo(nombre, tam_aux, tipo, dir_nueva);
+            fwrite(nuevo_atributo, sizeof(CAtributo), 1, ptr_arch);
 
-        if(this->lista_atributos->empty())
-        {
-            this->dir_atributo = dir_nueva;
-            this->lista_atributos->push_back(*nuevo_atributo);
-            b << "Se agrego el atributo " << nuevo_atributo->dame_Nombre()
-                   << " a la entidad" << std::endl;
-        }
-        else
-        {
-            atras_iterador = this->lista_atributos->begin();
-            while(atras_iterador != this->lista_atributos->end()
-                  && atras_iterador->dameDir_Siguiente() != -1)
+            if(this->lista_atributos->empty())
             {
-                atras_iterador++;
-            }
-            if(atras_iterador->dameDir_Siguiente() == -1)
-            {
-                std::fseek(ptr_arch, atras_iterador->dameDir_Atributo(), SEEK_SET);
-                atras_iterador->ponDir_Siguiente(dir_nueva);
-                aux_atributo = *atras_iterador;
-                std::fwrite(&aux_atributo, sizeof(CAtributo), 1, ptr_arch);
+                this->dir_atributo = dir_nueva;
                 this->lista_atributos->push_back(*nuevo_atributo);
+                b << "Se agrego el atributo " << nuevo_atributo->dame_Nombre()
+                       << " a la entidad" << endl;
+            }
+            else
+            {
+                atras_iterador = this->lista_atributos->begin();
+                while(atras_iterador != this->lista_atributos->end()
+                      && atras_iterador->dameDir_Siguiente() != -1)
+                {
+                    atras_iterador++;
+                }
+                if(atras_iterador->dameDir_Siguiente() == -1)
+                {
+                    fseek(ptr_arch, atras_iterador->dameDir_Atributo(), SEEK_SET);
+                    atras_iterador->ponDir_Siguiente(dir_nueva);
+                    aux_atributo = *atras_iterador;
+                    fwrite(&aux_atributo, sizeof(CAtributo), 1, ptr_arch);
+                    this->lista_atributos->push_back(*nuevo_atributo);
+                }
             }
         }
+    }
+    else
+    {
+        b << "No se pueden agregar mas atributos" << endl;
     }
     return b.str();
 }
 
-std::__cxx11::string CEntidad::imprime_Atributos()
+string CEntidad::imprime_Atributos()
 {
-    std::stringstream buffer;
-    std::list<CAtributo>::iterator iterador;
+    stringstream buffer;
+    list<CAtributo>::iterator iterador;
 
     iterador = this->lista_atributos->begin();
 
     while(iterador != this->lista_atributos->end())
     {
         buffer << "  Nombre  "
-                  << iterador->dame_Nombre() << std::endl
+                  << iterador->dame_Nombre() << endl
                   << "\tTipo   ";
         switch (iterador->dame_Tipo())
         {
         case 1:
-            buffer << "CHAR" << std::endl;
+            buffer << "CHAR" << endl;
             break;
         case 2:
-            buffer << "INT" << std::endl;
+            buffer << "INT" << endl;
             break;
         case 3:
-            buffer << "FLOAT" << std::endl;
+            buffer << "FLOAT" << endl;
             break;
         case 4:
             buffer << "CHAR(" << iterador->dame_Tamanio() << ")\n";
@@ -307,124 +314,139 @@ std::__cxx11::string CEntidad::imprime_Atributos()
             break;
         }
         buffer << "\tTamaño        "
-               << iterador->dame_Tamanio() << std::endl
+               << iterador->dame_Tamanio() << endl
                << "\tdir_Atributo  "
-               << iterador->dameDir_Atributo() << std::endl
+               << iterador->dameDir_Atributo() << endl
                << "\tdir_Siguiente "
-               << iterador->dameDir_Siguiente() << std::endl
-               << std::endl;
+               << iterador->dameDir_Siguiente() << endl
+               << endl;
         iterador++;
     }
     if(this->dir_atributo == -1)
     {
-        buffer << "No hay atributos" << std::endl;
+        buffer << "No hay atributos" << endl;
     }
     return buffer.str();
 }
 
-std::__cxx11::string CEntidad::mofica_Atributos(char nombre[20], int tipo, int tam, FILE *ptr_arch, int index)
+string CEntidad::mofica_Atributos(char nombre[20], int tipo, int tam, FILE *ptr_arch, int index)
 {
-    std::stringstream buffer;
-    std::list<CAtributo>::iterator iterador;
+    stringstream buffer;
+    list<CAtributo>::iterator iterador;
     CAtributo aux_atributo;
     char aux_nombre[20];
     int tam_aux;
 
     if(ptr_arch != NULL)
     {
-        iterador = this->lista_atributos->begin();
-
-        if(iterador != this->lista_atributos->end())
+        if(this->dir_dato == -1)
         {
-            switch (tipo)
-            {
-            case 1:
-                tam_aux = sizeof(char);
-                break;
-            case 2:
-                tam_aux = sizeof(int);
-                break;
-            case 3:
-                tam_aux = sizeof(float);
-                break;
-            case 4:
-                tam_aux = sizeof(char) * tam;
-                break;
-            }
-            std::advance(iterador, index-1);
-            std::strcpy(aux_nombre,iterador->dame_Nombre());
-            iterador->pon_Nombre(nombre);
-            iterador->pon_Tamanio(tam_aux);
-            iterador->pon_Tipo(tipo);
-            aux_atributo = *iterador;
-            std::fseek(ptr_arch, aux_atributo.dameDir_Atributo(), SEEK_SET);
-            std::fwrite(&aux_atributo, sizeof(CAtributo), 1, ptr_arch);
+            iterador = this->lista_atributos->begin();
 
-            buffer << "Se modifico el Atributo"
-                              << aux_nombre << " > " << aux_atributo.dame_Nombre()
-                              << std::endl;
+            if(iterador != this->lista_atributos->end())
+            {
+                switch (tipo)
+                {
+                case 1:
+                    tam_aux = sizeof(char);
+                    break;
+                case 2:
+                    tam_aux = sizeof(int);
+                    break;
+                case 3:
+                    tam_aux = sizeof(float);
+                    break;
+                case 4:
+                    tam_aux = sizeof(char) * tam;
+                    break;
+                }
+                advance(iterador, index-1);
+                strcpy(aux_nombre,iterador->dame_Nombre());
+                iterador->pon_Nombre(nombre);
+                iterador->pon_Tamanio(tam_aux);
+                iterador->pon_Tipo(tipo);
+                aux_atributo = *iterador;
+                fseek(ptr_arch, aux_atributo.dameDir_Atributo(), SEEK_SET);
+                fwrite(&aux_atributo, sizeof(CAtributo), 1, ptr_arch);
+
+                buffer << "Se modifico el Atributo"
+                                  << aux_nombre << " > " << aux_atributo.dame_Nombre()
+                                  << endl;
+            }
+            else
+            {
+                buffer << "La lista esta vacia" << endl;
+            }
         }
         else
         {
-            buffer << "La lista esta vacia" << std::endl;
+            buffer << "No se puede eliminar la entidad tiene datos" << endl;
         }
     }
     return buffer.str();
 }
 
-std::__cxx11::string CEntidad::elimina_Atributo(int index, FILE *ptr_arch)
+string CEntidad::elimina_Atributo(int index, FILE *ptr_arch)
 {
-    std::stringstream buffer;
-    std::list<CAtributo>::iterator iterador;
+    stringstream buffer;
+    list<CAtributo>::iterator iterador;
     CAtributo aux_atributo, aux_anterior;
 
-    if(ptr_arch != NULL)
+    if(this->dir_dato == -1)
     {
-        if(index-1 <= (int)this->lista_atributos->size())
+        if(ptr_arch != NULL)
         {
-            iterador = this->lista_atributos->begin();
-            if(iterador != this->lista_atributos->end())
+            if(index-1 <= (int)this->lista_atributos->size())
             {
-                std::advance(iterador, index-1);
-                aux_atributo = *iterador;
-                aux_anterior = *iterador;
                 iterador = this->lista_atributos->begin();
-                while(iterador->dameDir_Siguiente() != aux_atributo.dameDir_Atributo()
-                      && iterador != this->lista_atributos->end())
+                if(iterador != this->lista_atributos->end())
                 {
-                    iterador++;
-                }
-                if(iterador->dameDir_Siguiente() == aux_atributo.dameDir_Atributo())
-                {
-                    iterador->ponDir_Siguiente(aux_atributo.dameDir_Siguiente());
-                    std::fseek(ptr_arch, iterador->dameDir_Atributo(), SEEK_SET);
+                    advance(iterador, index-1);
                     aux_atributo = *iterador;
-                    std::fwrite(&aux_atributo, sizeof(CAtributo), 1, ptr_arch);
-                    buffer << "Se elimino el Atributo " << aux_anterior.dame_Nombre();
-                    this->lista_atributos->remove(aux_anterior);
+                    aux_anterior = *iterador;
+                    iterador = this->lista_atributos->begin();
+                    while(iterador->dameDir_Siguiente() != aux_atributo.dameDir_Atributo()
+                          && iterador != this->lista_atributos->end())
+                    {
+                        iterador++;
+                    }
+                    if(iterador->dameDir_Siguiente() == aux_atributo.dameDir_Atributo())
+                    {
+                        iterador->ponDir_Siguiente(aux_atributo.dameDir_Siguiente());
+                        fseek(ptr_arch, iterador->dameDir_Atributo(), SEEK_SET);
+                        aux_atributo = *iterador;
+                        fwrite(&aux_atributo, sizeof(CAtributo), 1, ptr_arch);
+                        buffer << "Se elimino el Atributo " << aux_anterior.dame_Nombre();
+                        this->lista_atributos->remove(aux_anterior);
 
-                }
-                else if(aux_atributo.dameDir_Atributo() == this->dir_atributo)
-                {
-                    this->dir_atributo = aux_atributo.dameDir_Siguiente();
-                    buffer << "Se elimino el Atributo " << aux_anterior.dame_Nombre();
-                    this->lista_atributos->remove(aux_anterior);
-                }
-                else
-                {
-                    buffer << "Error!! ";
+                    }
+                    else if(aux_atributo.dameDir_Atributo() == this->dir_atributo)
+                    {
+                        this->dir_atributo = aux_atributo.dameDir_Siguiente();
+                        buffer << "Se elimino el Atributo " << aux_anterior.dame_Nombre();
+                        this->lista_atributos->remove(aux_anterior);
+                    }
+                    else
+                    {
+                        buffer << "Error!! ";
+                    }
                 }
             }
         }
     }
+    else
+    {
+        buffer << "No se puede eliminar el atributo porque la entidad contiene datos"
+               << endl;
+    }
     return buffer.str();
 }
 
-std::__cxx11::string CEntidad::agrega_dato(FILE *ptr_arch)
+string CEntidad::agrega_dato(FILE *ptr_arch)
 {
     /*Funcion donde se agregan los datos*/
-    std::stringstream buffer;
-    std::list<CAtributo>::iterator iterador;
+    stringstream buffer;
+    list<CAtributo>::iterator iterador;
     void *bloque;
     //void *aux_bloque;
     char *aux_cadena;
@@ -451,7 +473,7 @@ std::__cxx11::string CEntidad::agrega_dato(FILE *ptr_arch)
             }
             tam_atributos += sizeof(long);
             //reserva memoria
-            bloque = std::malloc(tam_atributos);
+            bloque = malloc(tam_atributos);
 
             //Captura Datos
             tam_atributos = 0;
@@ -460,50 +482,50 @@ std::__cxx11::string CEntidad::agrega_dato(FILE *ptr_arch)
             {
                 switch (iterador->dame_Tipo()) {
                 case 1:
-                    std::cout << "CHAR " <<"Dame " << iterador->dame_Nombre() << ": ";
-                    std::cin >> aux_char;
+                    cout << "CHAR " <<"Dame " << iterador->dame_Nombre() << ": ";
+                    cin >> aux_char;
                     //actualiza bloque
                     *((char*)((uint8_t*)bloque+tam_atributos)) = aux_char;
                     tam_atributos += sizeof(char);
                     break;
                 case 2:
-                    std::cout << "INT " << "Dame " << iterador->dame_Nombre() << ": ";
-                    std::cin >> aux_entero;
+                    cout << "INT " << "Dame " << iterador->dame_Nombre() << ": ";
+                    cin >> aux_entero;
                     //actuza bloque
                     *((int*)((uint8_t*)bloque+tam_atributos)) = aux_entero;
                     tam_atributos += sizeof(int);
                     break;
                 case 3:
-                    std::cout << "FLOAT " << "Dame " << iterador->dame_Nombre() << ": ";
-                    std::cin >> aux_float;
+                    cout << "FLOAT " << "Dame " << iterador->dame_Nombre() << ": ";
+                    cin >> aux_float;
                     //actualiza bloque
                     *((float*)((uint8_t*)bloque+tam_atributos)) = aux_float;
                     tam_atributos += sizeof(float);
                     break;
                 case 4:
-                    aux_cadena = (char*)std::malloc(iterador->dame_Tamanio());
-                    std::cout << "CHAR (" << iterador->dame_Tamanio() << ") "
+                    aux_cadena = (char*)malloc(iterador->dame_Tamanio());
+                    cout << "CHAR (" << iterador->dame_Tamanio() << ") "
                               << "Dame " << iterador->dame_Nombre() << ": ";
-                    std::cin >> aux_cadena;
-                    std::strcpy((char*)((uint8_t*)bloque+tam_atributos), aux_cadena);
+                    cin >> aux_cadena;
+                    strcpy((char*)((uint8_t*)bloque+tam_atributos), aux_cadena);
                     tam_atributos += iterador->dame_Tamanio();
-                    std::free(aux_cadena);
+                    free(aux_cadena);
                     break;
                 default:
                     break;
                 }
                 //Linea para limpiar el buffer.
-                std::cin.ignore(256, '\n');
+                cin.ignore(256, '\n');
                 iterador++;
             }
 
-            std::fseek(ptr_arch, 0, SEEK_END);
-            dato_direccion = std::ftell(ptr_arch);
+            fseek(ptr_arch, 0, SEEK_END);
+            dato_direccion = ftell(ptr_arch);
             *((long*)((uint8_t*)bloque+tam_atributos)) = -1;
             tam_atributos += sizeof(long);
             //escribe en el archivo
-            std::fwrite(bloque, tam_atributos, 1, ptr_arch);
-            //std::fwrite(&aux_direccion, sizeof(long), 1, ptr_arch);
+            fwrite(bloque, tam_atributos, 1, ptr_arch);
+            //fwrite(&aux_direccion, sizeof(long), 1, ptr_arch);
 
             if(this->dir_dato == -1)
             {
@@ -518,37 +540,37 @@ std::__cxx11::string CEntidad::agrega_dato(FILE *ptr_arch)
                 {
                     aux_direccion += tam_atributos;
                     //Se mueve a la ubicacion del bloque en la direccion del siguiente bloque.
-                    std::fseek(ptr_arch, aux_direccion, SEEK_SET);
+                    fseek(ptr_arch, aux_direccion, SEEK_SET);
                     //se guarda la direccion donde esta la direccion del siguiente dato,
-                    aux_direccion_ant = std::ftell(ptr_arch);
+                    aux_direccion_ant = ftell(ptr_arch);
                     //Se lee el dato siguiente.
-                    std::fread(&aux_direccion, sizeof(long), 1, ptr_arch);
+                    fread(&aux_direccion, sizeof(long), 1, ptr_arch);
                 }while(aux_direccion != -1);
                 if(aux_direccion == -1)
                 {
                     //Se regresa el puntero a la direccion anterior
-                    std::fseek(ptr_arch, aux_direccion_ant, SEEK_SET);
+                    fseek(ptr_arch, aux_direccion_ant, SEEK_SET);
                     //Se actualiza la direccion anterior a la nueva direccion del nuevo dato.
-                    std::fwrite(&dato_direccion, sizeof(long), 1, ptr_arch);
+                    fwrite(&dato_direccion, sizeof(long), 1, ptr_arch);
                 }
             }
 
             //Solo para ver si escribio bien el bloque..
             this->imprime_dato(bloque);
-            std::free(bloque);
+            free(bloque);
         }
         else
         {
-            buffer << "No hay atributos!" << std::endl;
+            buffer << "No hay atributos!" << endl;
         }
     }
     return buffer.str();
 }
 
-std::__cxx11::string CEntidad::elimina_dato(int index, FILE *ptr_arch)
+string CEntidad::elimina_dato(int index, FILE *ptr_arch)
 {
-    std::stringstream buffer;
-    std::list<CAtributo>::iterator iterador;
+    stringstream buffer;
+    list<CAtributo>::iterator iterador;
     long dir_ant, aux_dir;
     int tam_atributos = 0;
     int contador = 1;
@@ -570,11 +592,11 @@ std::__cxx11::string CEntidad::elimina_dato(int index, FILE *ptr_arch)
             while(contador != index && aux_dir != -1)
             {
                 /*se ubica en la direccion siguiente del dato*/
-                std::fseek(ptr_arch, aux_dir+tam_atributos, SEEK_SET);
+                fseek(ptr_arch, aux_dir+tam_atributos, SEEK_SET);
                 /*se guarda la direccion anterior del dato*/
                 dir_ant = aux_dir;
                 /*se carga la nueva direccion*/
-                std::fread(&aux_dir, sizeof(long), 1, ptr_arch);
+                fread(&aux_dir, sizeof(long), 1, ptr_arch);
                 contador++;
             }
             /*Se verifica porque se salio del ciclo*/
@@ -584,30 +606,30 @@ std::__cxx11::string CEntidad::elimina_dato(int index, FILE *ptr_arch)
                 if(dir_ant == this->dir_dato)
                 {
                     /*Se mueve el puntero a la direccion del dato actual*/
-                    std::fseek(ptr_arch, dir_ant+tam_atributos, SEEK_SET);
+                    fseek(ptr_arch, dir_ant+tam_atributos, SEEK_SET);
                     /*se actualiza la cabecera al la direccion siguiente*/
-                    std::fread(&this->dir_dato, sizeof(long), 1, ptr_arch);
+                    fread(&this->dir_dato, sizeof(long), 1, ptr_arch);
                 }
                 else
                 {
-                    std::fseek(ptr_arch, aux_dir+tam_atributos, SEEK_SET);
-                    std::fread(&aux_dir, sizeof(long), 1, ptr_arch);
+                    fseek(ptr_arch, aux_dir+tam_atributos, SEEK_SET);
+                    fread(&aux_dir, sizeof(long), 1, ptr_arch);
                     /*se mueve el puntero a la direccion del dato anterior*/
-                    std::fseek(ptr_arch, dir_ant+tam_atributos, SEEK_SET);
+                    fseek(ptr_arch, dir_ant+tam_atributos, SEEK_SET);
                     /*se actualiza la direccion del dato anterior*/
-                    std::fwrite(&aux_dir, sizeof(long), 1, ptr_arch);
+                    fwrite(&aux_dir, sizeof(long), 1, ptr_arch);
                 }
-                buffer << "Se elimino el dato." << std::endl;
+                buffer << "Se elimino el dato." << endl;
             }
         }
     }            tam_atributos += sizeof(long);
     return buffer.str();
 }
 
-std::__cxx11::string CEntidad::edita_dato(int index, FILE *ptr_arch)
+string CEntidad::edita_dato(int index, FILE *ptr_arch)
 {
-    std::stringstream buffer;
-    std::list<CAtributo>::iterator iterador;
+    stringstream buffer;
+    list<CAtributo>::iterator iterador;
     void *bloque;
     char *aux_cadena;
     int aux_entero;
@@ -629,7 +651,7 @@ std::__cxx11::string CEntidad::edita_dato(int index, FILE *ptr_arch)
                 iterador++;
             }
             //reserva memoria
-            bloque = std::malloc(tam_atributos);
+            bloque = malloc(tam_atributos);
 
             tam_atributos = 0;
             iterador = this->lista_atributos->begin();
@@ -637,40 +659,40 @@ std::__cxx11::string CEntidad::edita_dato(int index, FILE *ptr_arch)
             {
                 switch (iterador->dame_Tipo()) {
                 case 1:
-                    std::cout << "CHAR " <<"Dame " << iterador->dame_Nombre() << " nuevo" << ": ";
-                    std::cin >> aux_char;
+                    cout << "CHAR " <<"Dame " << iterador->dame_Nombre() << " nuevo" << ": ";
+                    cin >> aux_char;
                     //actualiza bloque
                     *((char*)((uint8_t*)bloque+tam_atributos)) = aux_char;
                     tam_atributos += sizeof(char);
                     break;
                 case 2:
-                    std::cout << "INT " << "Dame " << iterador->dame_Nombre() << " nuevo" << ": ";
-                    std::cin >> aux_entero;
+                    cout << "INT " << "Dame " << iterador->dame_Nombre() << " nuevo" << ": ";
+                    cin >> aux_entero;
                     //actuza bloque
                     *((int*)((uint8_t*)bloque+tam_atributos)) = aux_entero;
                     tam_atributos += sizeof(int);
                     break;
                 case 3:
-                    std::cout << "FLOAT " << "Dame " << iterador->dame_Nombre() << " nuevo" << ": ";
-                    std::cin >> aux_float;
+                    cout << "FLOAT " << "Dame " << iterador->dame_Nombre() << " nuevo" << ": ";
+                    cin >> aux_float;
                     //actualiza bloque
                     *((float*)((uint8_t*)bloque+tam_atributos)) = aux_float;
                     tam_atributos += sizeof(float);
                     break;
                 case 4:
-                    aux_cadena = (char*)std::malloc(iterador->dame_Tamanio());
-                    std::cout << "CHAR (" << iterador->dame_Tamanio() << ") "
+                    aux_cadena = (char*)malloc(iterador->dame_Tamanio());
+                    cout << "CHAR (" << iterador->dame_Tamanio() << ") "
                               << "Dame " << iterador->dame_Nombre() << " nuevo" << ": ";
-                    std::cin >> aux_cadena;
-                    std::strcpy((char*)((uint8_t*)bloque+tam_atributos), aux_cadena);
+                    cin >> aux_cadena;
+                    strcpy((char*)((uint8_t*)bloque+tam_atributos), aux_cadena);
                     tam_atributos += iterador->dame_Tamanio();
-                    std::free(aux_cadena);
+                    free(aux_cadena);
                     break;
                 default:
                     break;
                 }
                 //Linea para limpiar el buffer.
-                std::cin.ignore(256, '\n');
+                cin.ignore(256, '\n');
                 iterador++;
             }
             aux_dir = this->dir_dato;
@@ -678,18 +700,18 @@ std::__cxx11::string CEntidad::edita_dato(int index, FILE *ptr_arch)
             while(contador != index && aux_dir != -1)
             {
                 /*se ubica en la direccion siguiente del dato*/
-                std::fseek(ptr_arch, aux_dir+tam_atributos, SEEK_SET);
-                std::fread(&aux_dir, sizeof(long), 1, ptr_arch);
+                fseek(ptr_arch, aux_dir+tam_atributos, SEEK_SET);
+                fread(&aux_dir, sizeof(long), 1, ptr_arch);
                 contador++;
             }
             /*Se verifica porque se salio del ciclo*/
             if(contador == index)
             {
-                std::fseek(ptr_arch, aux_dir, SEEK_SET);
-                std::fwrite(bloque, tam_atributos, 1, ptr_arch);
-                std::rewind(ptr_arch);
-                buffer << "Se modifico el dato." << std::endl;
-                std::free(bloque);
+                fseek(ptr_arch, aux_dir, SEEK_SET);
+                fwrite(bloque, tam_atributos, 1, ptr_arch);
+                rewind(ptr_arch);
+                buffer << "Se modifico el dato." << endl;
+                free(bloque);
             }
         }
     }
@@ -699,7 +721,7 @@ std::__cxx11::string CEntidad::edita_dato(int index, FILE *ptr_arch)
 void CEntidad::imprime_dato(void *bloque)
 {
     int tam_dato = 0;
-    std::list<CAtributo>::iterator it;
+    list<CAtributo>::iterator it;
     char aux_char;
     int aux_int;
     float aux_float;
@@ -713,23 +735,23 @@ void CEntidad::imprime_dato(void *bloque)
         case 1:
             aux_char = *((char*)((uint8_t*)bloque + tam_dato));
             tam_dato += sizeof(char);
-            std::cout << it->dame_Nombre()<<": "<< aux_char << std::endl;
+            cout << it->dame_Nombre()<<": "<< aux_char << endl;
             break;
         case 2:
             aux_int = *((int*)((uint8_t*)bloque + tam_dato));
             tam_dato += sizeof(int);
-            std::cout << it->dame_Nombre() << ": " << aux_int << std::endl;
+            cout << it->dame_Nombre() << ": " << aux_int << endl;
             break;
         case 3:
             aux_float = *((float*)((uint8_t*)bloque + tam_dato));
             tam_dato+= sizeof(float);
-            std::cout << it->dame_Nombre() << ": " << aux_float << std::endl;
+            cout << it->dame_Nombre() << ": " << aux_float << endl;
             break;
         case 4:
-            aux_cad = (char*)std::malloc(it->dame_Tamanio());
-            std::strcpy(aux_cad, ((char*)((uint8_t*)bloque + tam_dato)));
-            std::cout << it->dame_Nombre() << ": " << aux_cad << std::endl;
-            std::free(aux_cad);
+            aux_cad = (char*)malloc(it->dame_Tamanio());
+            strcpy(aux_cad, ((char*)((uint8_t*)bloque + tam_dato)));
+            cout << it->dame_Nombre() << ": " << aux_cad << endl;
+            free(aux_cad);
             tam_dato += it->dame_Tamanio();
             break;
         default:
@@ -738,6 +760,6 @@ void CEntidad::imprime_dato(void *bloque)
         it++;
     }
     aux_direccion = *((long*)((uint8_t*)bloque+tam_dato));
-    std::cout << "Direccion siguiente: " << aux_direccion << std::endl;
+    cout << "Direccion siguiente: " << aux_direccion << endl;
     return;
 }

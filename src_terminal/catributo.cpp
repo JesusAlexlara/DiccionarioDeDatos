@@ -6,6 +6,8 @@ CAtributo::CAtributo()
     this->dir_siguiente = -1;
     this->tipo = 0;
     this->tamanio = 0;
+    this->indice = false;
+    this->clave_primaria = false;
 }
 
 CAtributo::CAtributo(char n[20], int tam, int tipo, long dir)
@@ -15,11 +17,13 @@ CAtributo::CAtributo(char n[20], int tam, int tipo, long dir)
     this->dir_siguiente = -1;
     this->tipo = tipo;
     this->tamanio = tam;
+    this->indice = false;
+    this->clave_primaria = false;
 }
 
 void CAtributo::pon_Nombre(char n[20])
 {
-    std::strcpy(this->nombre, n);
+    strcpy(this->nombre, n);
     return;
 }
 
@@ -72,12 +76,24 @@ int CAtributo::dame_Tamanio()
     return this->tamanio;
 }
 
+bool CAtributo::dame_Indice()
+{
+    return this->indice;
+}
+
+bool CAtributo::dame_ClavePrimaria()
+{
+    return this->clave_primaria;
+}
+
 bool CAtributo::operator==(const CAtributo &a) const
 {
     CAtributo p = a;
-    return (std::strcmp(p.dame_Nombre(), this->nombre) == 0)
+    return (strcmp(p.dame_Nombre(), this->nombre) == 0)
             && (p.dame_Tamanio() == this->tamanio)
             && (p.dame_Tipo() == this->tipo)
             && (p.dameDir_Atributo() == this->dir_atributo)
-            && (p.dameDir_Siguiente() == this->dir_siguiente);
+            && (p.dameDir_Siguiente() == this->dir_siguiente)
+            && (p.dame_Indice() == this->indice)
+            && (p.dame_ClavePrimaria() == this->clave_primaria);
 }

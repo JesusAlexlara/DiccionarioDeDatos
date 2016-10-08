@@ -10,26 +10,28 @@
 #include"centidad.h"
 #include"limpiapantalla.h"
 
+using namespace std;
+
 class CDiccionario
 {
 private:
     long cabecera;
     FILE *ptr_Archivo;
-    std::list<CEntidad> lista_entidades;
+    list<CEntidad> lista_entidades;
 
 public:
     CDiccionario();
     ~CDiccionario();
 
-    std::string abrir_Diccionario(char n[20]);
-    std::string agrega_Entidad(char n[20]);
-    std::string edita_Entidad(int index, char n[20]);
-    std::string elimina_Entidad(int n);
-    std::string imprime_Entidades();
+    string abrir_Diccionario(char n[20]);
+    string agrega_Entidad(char n[20]);
+    string edita_Entidad(int index, char n[20]);
+    string elimina_Entidad(int n);
+    string imprime_Entidades();
 
     int lista_EntidadesMenu();
-    std::string selecciona_Entidad(int index);
-    int menu_Entidad(char n[20], std::string buf);
+    string selecciona_Entidad(int index);
+    int menu_Entidad(char n[20], string buf);
     bool existe_Diccionario();
 };
 

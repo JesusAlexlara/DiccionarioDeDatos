@@ -2,25 +2,25 @@
 #include "cdiccionario.h"
 #include "limpiapantalla.h"
 
-int menu(std::string log)
+int menu(string log)
 {
     int opcion;
-    std::cout << log << std::endl
-              << "1 - Crear/Abrir diccionario" << std::endl
-              << "2 - Agregar Entidad" << std::endl
-              << "3 - Elimina entidad" << std::endl
-              << "4 - Edita entidad" << std::endl
-              << "5 - Imprime Entidades" << std::endl
-              << "6 - Agrega Atributos" << std::endl
-              << "0 - Salir" << std::endl
+    cout << log << endl
+              << "1 - Crear/Abrir diccionario" << endl
+              << "2 - Agregar Entidad" << endl
+              << "3 - Elimina entidad" << endl
+              << "4 - Edita entidad" << endl
+              << "5 - Imprime Entidades" << endl
+              << "6 - Agrega Atributos" << endl
+              << "0 - Salir" << endl
               << "> ";
-    std::cin >> opcion;
+    cin >> opcion;
     return opcion;
 }
 
 int main()
 {
-    std::string log;
+    string log;
     CDiccionario d;
     int opcion, seleccion;
     char na[20];
@@ -30,17 +30,17 @@ int main()
         opcion = menu(log);
         switch (opcion) {
         case 1:
-            std::cout << "Nombre del archivo:" << std::endl
+            cout << "Nombre del archivo:" << endl
                       << "> ";
-            std::cin >> na;
+            cin >> na;
             log = d.abrir_Diccionario(na);
             break;
         case 2:
             if(d.existe_Diccionario())
             {
-                std::cout << "Nombre de la entidad:" << std::endl
+                cout << "Nombre de la entidad:" << endl
                           << "> ";
-                std::cin >> na;
+                cin >> na;
                 log = d.agrega_Entidad(na);
             }
             else
@@ -70,9 +70,9 @@ int main()
                 seleccion = d.lista_EntidadesMenu();
                 if(seleccion >= 1)
                 {
-                    std::cout << "Nuevo nombre de la entidad:" << std::endl
+                    cout << "Nuevo nombre de la entidad:" << endl
                               << "> ";
-                    std::cin >> na;
+                    cin >> na;
                     log = d.edita_Entidad(seleccion, na);
                 }
                 else

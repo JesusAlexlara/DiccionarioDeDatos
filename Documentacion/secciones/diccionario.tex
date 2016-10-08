@@ -4,21 +4,6 @@
 Un aspecto fundamental de los sistemas de información es la organización sobre la cual maneja sus datos ya que de ello depende el desempeño de los programas. En el siguiente contenido desarrollaremos teórica y prácticamente las diferentes organizaciones de archivos, las cuales implementamos para diccionario de datos.
 
 
-\chapter[Conceptos]{Conceptos}
-
-\section{Archivo}
-Un archivo es una colección de registros logicamente relacionados. Por lo	regular, todos los registros de un archivo	tienen un formato único, aunque existen archivos con multiples	 formatos de registros.	
-
-\section{Entidad}
-Las entidades se describen en la estructura de la base de datos empleando un modelo de datos.
-Cada entidad está constituida por uno o más atributos. Por ejemplo, la entidad "Alumno" podría tener los atributos: nombre, apellido, año de nacimiento, etc.
-
-\section{Atributos}
-Los atributos son las características por medio de los cuales se puede describir una entidad.
-
-\section{Datos}
-Un dato es una representación simbólica (numérica, alfabética, algorítmica, espacial, etc.) de un atributo o variable cuantitativa o cualitativa. Los datos describen hechos empíricos, sucesos y entidades.
-
 \chapter[Organizaciones de archivos]{Organizaciones de archivos}
 
 Las técnicas utilizadas para representar y almacenar registros en archivos se llama organización de archivos. Las cuatro técnicas fundamentales de organización de archivos que analizaremos son las siguientes:
@@ -141,254 +126,244 @@ Cambios hechos sobre archivos para mejorar la eficiencia de los programas que lo
 Es un conjunto de metadatos que contiene las características lógicas y puntuales de los datos que se van a utilizar en un sistema que se programa, incluyendo nombres, descripción, alias, contenido y organización.
 
 \section{Descripción de un diccionario de datos}
-Es un catálogo de los elementos en un sistema. Como su nombre lo sugiere, estos elementos se centran alrededor de los datos y la forma en que están estructurados para satisfacer los requerimientos de los usuarios y las necesidades de la organización. En un diccionario de datos se encuentra la lista de todos los elementos que forman parte del flujo de datos en todo el sistema. Los elementos más importantes son flujos de datos, almacenes de datos y procesos. El diccionario guarda los detalles y descripciones de todos estos elementos.
+Es un catálogo de los elementos en un sistema. Como su nombre lo sugiere, estos elementos se centran alrededor de los datos y la forma en que están estructurados para satisfacer los requerimientos de los usuarios y las necesidades de la organización. En un diccionario de datos se encuentra la lista de todos los elementos que forman parte del flujo de datos en todo el sistema. Los elementos más importantes son flujos de datos, almacenes de datos y procesos. El diccionario guarda los detalles y descripciones de todos estos elementos. 
 
-\section{Operaciones basicas de un diccionario de datos}
-\begin{itemize}
+\section{Operaciones basicas de un diccionario de datos.}
 
-\item[•] Altas
-\begin{itemize}
-\item[-] La modificación de datos a registros que ya existen en el archivo, por ejemplo, cambiar el sueldo del empleado, cambiar el indicativo de estado del empleado(activo, no activo, de licencia)
-\end{itemize}
-\item[•] Bajas
-\begin{itemize}
-\item[-] La supresión de registros del archivo, esto es, borrar el registro de un empleado que salió de la compañía.
-\end{itemize}
-\item[•] Modificaciones
-\begin{itemize}
-\item[-] La modificación de datos a registros que ya existen en el archivo, por ejemplo, cambiar el sueldo del empleado, cambiar el indicativo de estado del empleado(activo, no activo, de licencia)
-\end{itemize}
-\end{itemize}
+{\bf Altas:} La modificación de datos a registros que ya existen en el archivo, por ejemplo, cambiar el sueldo del empleado, cambiar el indicativo de estado del empleado (activo, no activo, de licencia).
 
-\section{Ejemplos}
+{\bf Bajas:} La supresión de registros del archivo, esto es, borrar el registro de un empleado que salió de la compañía.
 
-\subsection{Altas}
-\begin{figure}[!ht]
-\begin{center}
-  \includegraphics[width=0.5\textwidth]{secciones/ejemploA/img1.png}
-  \caption{Campos de una entidad}
-\end{center}
-\end{figure}
-\begin{figure}[!ht]
-\begin{center}
-  \includegraphics[width=0.5\textwidth]{secciones/ejemploA/img2.png}
-  \caption{Insercion primera de una entidad en el diccionario.}
-\end{center}
-\end{figure}
-\begin{figure}[!ht]
-\begin{center}
-  \includegraphics[width=0.5\textwidth]{secciones/ejemploA/img3.png}
-  \caption{Insercion segunda de una entidad en el diccionario.}
-\end{center}
-\end{figure}
-\begin{figure}[!ht]
-\begin{center}
-  \includegraphics[width=0.5\textwidth]{secciones/ejemploA/img4.png}
-  \caption{Insercion tercera de una entidad en el diccionario.}
-\end{center}
-\end{figure}
+{\bf Modificaciones:} La modificación de datos a registros que ya existen en el archivo, por ejemplo, cambiar el sueldo del empleado, cambiar el indicativo de estado del empleado(activo, no activo, de licencia)
 
 \newpage
-\subsection{Codigo en C++ de Altas}
-\lstset{language=C++, breaklines=true, basicstyle=\footnotesize, basewidth  = {.5em,0.4em}}
-\begin{lstlisting}[frame=single]
-string CDiccionario::agrega_Entidad(char n[20])
-{
-    long dir_nueva;
-    std::stringstream buffer;
-    CEntidad *nueva_entidad, aux_entidad;
-    std::list<CEntidad>::iterator atras_entidad;
+\section{Operaciones basicas entidades}
 
-    if(this->ptr_Archivo != NULL)
-    {
-        /*Se pone el apuntador al final de archivo*/
-        std::fseek(this->ptr_Archivo, 0, SEEK_END);
-        dir_nueva = std::ftell(this->ptr_Archivo);
-        nueva_entidad = new CEntidad(n, dir_nueva);
-        std::fwrite(nueva_entidad, sizeof(CEntidad), 1, this->ptr_Archivo);
-
-        //Si el diccionario esta vacio agrega y actualiza la cabecera
-        if(this->lista_entidades.empty())
-        {
-            this->cabecera = dir_nueva;
-            //Se actualiza la cabecera en el archivo
-            std::fseek(this->ptr_Archivo, 0, SEEK_SET);
-            std::fwrite(&this->cabecera, sizeof(long), 1, this->ptr_Archivo);
-            //Se agrega la nueva entidad a la lista
-            this->lista_entidades.push_back(*nueva_entidad);
-            buffer << "Se agrego la entidad " << n << " al diccionario" << std::endl;
-
-        }
-        else
-        {
-            //recorre la lista y busca el ultimo elemento
-            atras_entidad = this->lista_entidades.begin();
-            while(atras_entidad != this->lista_entidades.end()
-                  && atras_entidad->dameDir_Siguiente() != -1)
-            {
-                atras_entidad++;
-            }
-            //Verifica si encontro la ultima entidad al final
-            if(atras_entidad->dameDir_Siguiente() == -1)
-            {
-                std::fseek(this->ptr_Archivo, atras_entidad->dameDir_Entidad(), SEEK_SET);
-                atras_entidad->ponDir_Siguiente(dir_nueva);
-                aux_entidad = *atras_entidad;
-                std::fwrite(&aux_entidad, sizeof(CEntidad), 1, this->ptr_Archivo);
-                this->lista_entidades.push_back(*nueva_entidad);
-                buffer << "Se agrego la entidad " << n << " al diccionario" << std::endl;
-            }
-        }
-        //Ordena a lista por nombres, esto es posible por la sobrecarga del operador ==
-        this->lista_entidades.sort();
-    }
-    //Retorna un buffer que despues es mostrado al inicio del menu.
-    return buffer.str();
-\end{lstlisting}
-
-\subsection{Bajas}
+Una entidad en un diccionario de datos requiere un objeto entidad, el cual contiene los campos para el nombre,
+un campo para almacenar su propia dirección (dir\_entidad); una dirección a su primer atributo (dir\_atr); una dirección a su primer
+dato (dir\_dato) y por utimo una dirección a su siguiente entidad. como se muestra en la imagen.
 \begin{figure}[!ht]
 \begin{center}
-  \includegraphics[width=0.5\textwidth]{secciones/ejemploA/Elimina1.png}
+  \includegraphics[width=0.8\textwidth]{secciones/ejemploA/img1.png}
+  \caption{Campos de una entidad.}
+\end{center}
+\end{figure}
+
+\subsection{Altas}
+Al insertar una entidad nueva existen dos casos, el primer caso se presenta cuando el archivo no contiene ninguna entidad y la 
+cabecera se encuentra en -1 y el segundo caso se presenta cuando el archivo contiene por lo menos una entidad.
+A continuación describiremos cada caso.
+
+{\bf Caso uno: }Al verificar la cabecera que contenga -1, nos situamos al final del archivo y almacenamos esa dirección, escribimos la nueva entidad
+a partir de la direccion almacenada y actualizamo la cabecera con dicha dirección.
+
+\begin{figure}[!ht]
+\begin{center}
+  \includegraphics[width=0.8\textwidth]{secciones/ejemploA/img2.png}
+  \caption{Inserción de entidad caso uno.}
+\end{center}
+\end{figure}
+
+\lstset{language=C++, breaklines=true, basicstyle=\footnotesize, basewidth  = {.5em,0.4em}}
+\begin{lstlisting}[frame=single]
+if(this->lista_entidades.empty())
+{
+	this->cabecera = dir_nueva;
+    //Se actualiza la cabecera en el archivo
+    std::fseek(this->ptr_Archivo, 0, SEEK_SET);
+    std::fwrite(&this->cabecera, sizeof(long), 1, this->ptr_Archivo);
+    //Se agrega la nueva entidad a la lista
+    this->lista_entidades.push_back(*nueva_entidad);
+    buffer << "Se agrego la entidad " << n << " al diccionario" << std::endl;
+}
+\end{lstlisting}
+
+Explicación codigo..
+
+{\bf Caso dos: }Si la cabecera es diferente de -1 iteramos hasta encontrar la ultima entidad, agregamos la entidad al final del archivo, y actualizamos la dirección al la siguiente entidad de la ultima entidad a la entidad nueva.
+
+\begin{figure}[!ht]
+\begin{center}
+  \includegraphics[width=0.8\textwidth]{secciones/ejemploA/img3.png}
+  \caption{Inserción de entodad caso dos.}
+\end{center}
+\end{figure}
+
+\lstset{language=C++, breaklines=true, basicstyle=\footnotesize, basewidth  = {.5em,0.4em}}
+\begin{lstlisting}[frame=single]
+else
+{
+	//recorre la lista y busca el ultimo elemento
+    atras_entidad = this->lista_entidades.begin();
+    while(atras_entidad != this->lista_entidades.end()
+          && atras_entidad->dameDir_Siguiente() != -1)
+    {
+         atras_entidad++;
+    }
+    //Verifica si encontro la ultima entidad al final
+    if(atras_entidad->dameDir_Siguiente() == -1)
+    {
+         fseek(this->ptr_Archivo, atras_entidad->dameDir_Entidad(), SEEK_SET);
+         atras_entidad->ponDir_Siguiente(dir_nueva);
+         aux_entidad = *atras_entidad;
+         fwrite(&aux_entidad, sizeof(CEntidad), 1, this->ptr_Archivo);
+         this->lista_entidades.push_back(*nueva_entidad);
+         buffer << "Se agrego la entidad " << n << " al diccionario" << endl;
+     }
+}
+\end{lstlisting}
+
+Explicación codigo..
+
+\newpage
+\subsection{Bajas}
+
+Para las baja de una entidad existen tres casos.
+
+{\bf Caso uno:} Si el archivo tiene únicamente una entidad, por lo tanto la cabecera apuntara a esa entidad, para darla de baja únicamente tenemos que actualizar la cabecera con -1 indicando que el archivo quedo vacío.
+
+\begin{figure}[!ht]
+\begin{center}
+  \includegraphics[width=0.8\textwidth]{secciones/ejemploA/Elimina1.png}
   \caption{Eliminación de un campo, la eliminación solo se actualizan los apuntadores.}
 \end{center}
 \end{figure}
+
+\lstset{language=C++, breaklines=true, basicstyle=\footnotesize, basewidth  = {.5em,0.4em}}
+\begin{lstlisting}[frame=single]
+if(this->cabecera == aux_entidad.dameDir_Entidad())
+{
+	this->cabecera = aux_entidad.dameDir_Siguiente();
+    fseek(this->ptr_Archivo, 0, SEEK_SET);
+    fwrite(&this->cabecera, sizeof(long), 1, this->ptr_Archivo);
+    buffer << "Es es el primero" << iterador->dame_Nombre() << endl;
+    /*Elimino la entidad de la lista*/
+   	iterador = this->lista_entidades.begin();
+   	advance(iterador, n);
+  	this->lista_entidades.remove(*iterador);
+}
+\end{lstlisting}
+
+explicación..
+
+\newpage
+{\bf Caso dos:} Cuando la entidad a eliminar no es la primera entidad ni la ultima entidad, esto quiere decir que tiene una entidad anterior a ésta y una entidad después imagen 4.6, para hacer la baja tenemos que actualizar el campo “sig\_ent” de la entidad anterior, con con el campo “sig\_ent” de la entidad a elimina, de esta manera ligamos la entidad anterior con la entidad siguiente.
+
 \begin{figure}[!ht]
 \begin{center}
-  \includegraphics[width=0.5\textwidth]{secciones/ejemploA/Elimina2.png}
+  \includegraphics[width=0.8\textwidth]{secciones/ejemploA/Elimina2.png}
   \caption{Eliminación al final del diccionario.}
 \end{center}
 \end{figure}
+
+{\bf Caso tres:} Si el archivo tiene por lo menos mas de 2 entidades y la entidad a eliminar es la ultima entidad. Para hacer la baja de la ultima entidad necesitamos actualizar el campo “sig\_ent” de la entidad anterior a eliminar, con un -1 indicando que ahora la entidad anterior es la ultima.
 \begin{figure}[!ht]
 \begin{center}
-  \includegraphics[width=0.5\textwidth]{secciones/ejemploA/Elimina3.png}
+  \includegraphics[width=0.8\textwidth]{secciones/ejemploA/Elimina3.png}
   \caption{Eliminación al inicio del diccionario.}
 \end{center}
 \end{figure}
 
-\newpage
-\subsection{Codigo en C++ de Bajas}
 \lstset{language=C++, breaklines=true, basicstyle=\footnotesize, basewidth  = {.5em,0.4em}}
 \begin{lstlisting}[frame=single]
-string CDiccionario::elimina_Entidad(int n) {
-    std::stringstream buffer;
-    CEntidad aux_entidad;
-    std::list<CEntidad>::iterator iterador;
-	/*Si el archivo esta creado entra para realizarla baja*/
-    if(this->ptr_Archivo != NULL) {
-    	/*Se ubica el iterador en la primera entidad de la lista*/
-        iterador = this->lista_entidades.begin();
-        if(iterador != this->lista_entidades.end()) {
-        	/*Avanza el iterador segun el index*/
-            std::advance(iterador, n);
-            aux_entidad = *iterador;
-
-            iterador = this->lista_entidades.begin();
-            while((iterador->dameDir_Siguiente() != aux_entidad.dameDir_Entidad())
-                  && iterador != this->lista_entidades.end()) {
-                iterador++;
-            }
-            /*Si el iterador es correcto modifica el archivo*/
-            if(iterador->dameDir_Siguiente() == aux_entidad.dameDir_Entidad())
-            {
-                buffer << "Encontro el anterior " << iterador->dame_Nombre() << std::endl;
-                iterador->ponDir_Siguiente(aux_entidad.dameDir_Siguiente());
-                std::fseek(this->ptr_Archivo, iterador->dameDir_Entidad(), SEEK_SET);
-                aux_entidad = *iterador;
-                std::fwrite(&aux_entidad, sizeof(CEntidad), 1, this->ptr_Archivo);
-                /*Elimino la entidad de la lista*/
-                iterador = this->lista_entidades.begin();
-                std::advance(iterador, n);
-                this->lista_entidades.remove(*iterador);
-            }
-            else if(this->cabecera == aux_entidad.dameDir_Entidad()) {
-                this->cabecera = aux_entidad.dameDir_Siguiente();
-                std::fseek(this->ptr_Archivo, 0, SEEK_SET);
-                std::fwrite(&this->cabecera, sizeof(long), 1, this->ptr_Archivo);
-                buffer << "Es es el primero" << iterador->dame_Nombre() << std::endl;
-                /*Elimino la entidad de la lista*/
-                iterador = this->lista_entidades.begin();
-                std::advance(iterador, n);
-                this->lista_entidades.remove(*iterador);
-            }
-        }
-        else {
-            std::cout << "El diccionario esta vacio" << std::endl;
-        }
-    }
-    return buffer.str();
+if(iterador->dameDir_Siguiente() == aux_entidad.dameDir_Entidad())
+{
+	buffer << "Encontro el anterior " << iterador->dame_Nombre() << endl;
+    iterador->ponDir_Siguiente(aux_entidad.dameDir_Siguiente());
+    fseek(this->ptr_Archivo, iterador->dameDir_Entidad(), SEEK_SET);
+    aux_entidad = *iterador;
+    fwrite(&aux_entidad, sizeof(CEntidad), 1, this->ptr_Archivo);
+    /*Elimino la entidad de la lista*/
+    iterador = this->lista_entidades.begin();
+    advance(iterador, n);
+    this->lista_entidades.remove(*iterador);
 }
 \end{lstlisting}
+
+explicación..
+
+\newpage
+\subsection{Modificaciones}
+Para la modificación de una entidad, el único campo a modificar sería el campo nombre, para realizar esta operación debemos buscar la entidad a modificar, cargarla en memoria para modificarla ahí, editamos su nombre y por ultimo debemos de escribir la entidad ya modificada en el mismo lugar en el que se encontraba.
+
+\begin{figure}[!ht]
+\begin{center}
+  \includegraphics[width=0.5\textwidth]{secciones/ejemploA/EdicionEntidad.png}
+  \caption{Modificación de una entidad}
+\end{center}
+\end{figure}
+
+\lstset{language=C++, breaklines=true, basicstyle=\footnotesize, basewidth  = {.5em,0.4em}}
+\begin{lstlisting}[frame=single]
+if(iterador != this->lista_entidades.end())
+{
+	/*El metodo advance el iterador n veces si seleccione el elemento 2
+    * advance recorre el iterador 2 veces
+    */
+    advance(iterador, index-1);
+    strcpy(aux_nombre, iterador->dame_Nombre());
+    iterador->pon_Nombre(n);
+    aux_entidad = *iterador;
+    fseek(this->ptr_Archivo, iterador->dameDir_Entidad(), SEEK_SET);
+    fwrite(&aux_entidad, sizeof(CEntidad), 1, this->ptr_Archivo);
+    buffer << "Se modifico la Entidad "
+    	    << aux_nombre << " > " << aux_entidad.dame_Nombre()
+            << endl;
+    this->lista_entidades.sort();
+}
+\end{lstlisting}
+
+explicación..
+
+\newpage
+\section{Operaciones basicas de atributos}
+
+\subsection{Altas}
+Para realizar una alta de un atributo, primero debemos seleccionar la entidad a la cual se agregará el atributos, ya posicionados en el la entidiad que se agregará el nuevo tributo existen 2 casos.
+
+{\bf Primer caso:} Cuando el atributo a agregar es el primer atributo, debemos agregar al final del archivo y actualizar el campo “dir\_atr” de la entidad seleccionada con la dirección donde se agrego el nuevo atributo.
+
+\begin{figure}[!ht]
+\begin{center}
+  \includegraphics[width=0.8\textwidth]{secciones/ejemploA/InsercionAtributo1.png}
+  \caption{Inserción de atributos caso uno.}
+\end{center}
+\end{figure}
+
+{\bf Primer caso:} Cuando en el archivo por lo menos tiene 1 atributo de la entidad seleccionada, esto quiere decir que debemos actualizar el campo “sig\_atr” del del ultimo atributo con la dirección donde se inserto el nuevo
+
+\begin{figure}[!ht]
+\begin{center}
+  \includegraphics[width=0.5\textwidth]{secciones/ejemploA/ad.png}
+  \caption{Insercion de atributos caso dos.}
+\end{center}
+\end{figure}
+
+
+\subsection{Bajas}
+
+
+\begin{figure}[!ht]
+\begin{center}
+  \includegraphics[width=0.5\textwidth]{secciones/ejemploA/EliminaAtributo.png}
+  \caption{La baja de atributos implica actualizar los apuntadores en el diccionario.}
+\end{center}
+\end{figure}
 
 \subsection{Modificaciones}
-\newpage
-\subsection{Codigo en C++ de Modificaciones}
-\lstset{language=C++, breaklines=true, basicstyle=\footnotesize, basewidth  = {.5em,0.4em}}
-\begin{lstlisting}[frame=single]
-string CDiccionario::edita_Entidad(int index, char n[20])
-{
-    std::stringstream buffer;
-    CEntidad aux_entidad;
-    char aux_nombre[20];
-    std::list<CEntidad>::iterator iterador;
+\begin{figure}[!ht]
+\begin{center}
+  \includegraphics[width=0.5\textwidth]{secciones/ejemploA/EdicionAtributo.png}
+  \caption{Edición de un atributo.}
+\end{center}
+\end{figure}
 
-    if(this->ptr_Archivo != NULL)
-    {
-        iterador = this->lista_entidades.begin();
-        /*Se verifica si la lista no esta vacia comparado el interador con el final de la
-        lista*/
-        if(iterador != this->lista_entidades.end())
-        {
-            /*El metodo advance el iterador n veces si seleccione el elemento 2
-             * advance recorre el iterador 2 veces
-             */
-            std::advance(iterador, index-1);
-            std::strcpy(aux_nombre, iterador->dame_Nombre());
-            iterador->pon_Nombre(n);
-            aux_entidad = *iterador;
-            std::fseek(this->ptr_Archivo, iterador->dameDir_Entidad(), SEEK_SET);
-            std::fwrite(&aux_entidad, sizeof(CEntidad), 1, this->ptr_Archivo);
-            buffer << "Se modifico la Entidad "
-                   << aux_nombre << " > " << aux_entidad.dame_Nombre()
-                   << std::endl;
-            this->lista_entidades.sort();
-        }
-        else
-        {
-            std::cout << "El diccionario esta vacio" << std::endl;
-        }
-    }
-    return buffer.str();
-}
-\end{lstlisting}
+\section{Operaciones basicas de datos}
+
 
 
 \chapter[Organización de archivos secuenciales]{Organización de archivos secuenciales}
 La manera básica de organizar un conjunto de registros, que forman un archivo, es utilizando una organización secuencial. En un archivo organizado secuencialmente, los  registros quedan grabados consecutivamente cuando el archivo se crea y deben accesarse consecutivamente cuando el archivo se usa como se muestra a continuación:
 
-\begin{figure}[!ht]
-\begin{center}
-  \includegraphics[width=0.5\textwidth]{secciones/imgA.png}
-  \caption{Estructura de un archivo secuencial}
-\end{center}
-\end{figure}
 
 En la mayoría de los casos, los registros de un archivo secuencial quedan ordenados de acuerdo con el valor de algún campo de cada registro. Semejante archivo se dice que es un archivo ordenado; el campo, o los campos, cuyo valores se utiliza para determinar el ordenamiento es conocido como llave de ordenamiento. Un archivo puede ordenarse ascendente o descendentemente con base en la llave de ordenamiento, la cual puede constar de uno o mas campos.
-
-
-\begin{table}
-\begin{center}
-
-\begin{tabular}{|c|c|c|c|c|c|}
-\hline
-Nombre & Dir\_Entidad & Dir\_Atriuto & Dir\_Dato & Dir\_siguiente \\ 
-\hline 
-\end{tabular} 
-
-\caption{Tabla de ejemplo}
-
-\end{center}
-\end{table}
-
-
-
